@@ -37,6 +37,10 @@ class NILMain(private val config: NILConfig) {
         val filtrationBasedVerificationPhase = NGramBasedFiltration(config.verificationThreshold)
         val verificationPhase = LCSBasedVerification(HuntSzymanskiLCS(), config.verificationThreshold)
 
+        // Create output directory if needed
+        val outputFile = File(config.outputFileName)
+        outputFile.parentFile?.mkdirs()
+
         File(CLONE_PAIR_FILE_NAME).bufferedWriter().use { bw ->
             repeat(config.partitionNum) { i ->
                 val startIndex: Int = i * partitionSize
