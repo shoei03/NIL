@@ -12,3 +12,6 @@ build
 clone_pairs
 code_blocks
 result_*.csv
+
+# Ignore target analysis directory
+Repos/*/*
