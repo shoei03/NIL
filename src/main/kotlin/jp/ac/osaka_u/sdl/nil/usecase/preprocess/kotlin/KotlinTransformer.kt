@@ -27,7 +27,7 @@ class KotlinTransformer(config: NILConfig) :
 
     override fun Token.isNegligible(): Boolean =
         this.text.run {
-            this[0] == '\n' || this[0] == ' ' || this[0] == '\r' ||
-                this.isEmpty() || this.startsWith("//") || this.startsWith("/*")
+            this.isEmpty() || this[0] == '\n' || this[0] == ' ' || this[0] == '\r' ||
+                this.startsWith("//") || this.startsWith("/*")
         }
 }

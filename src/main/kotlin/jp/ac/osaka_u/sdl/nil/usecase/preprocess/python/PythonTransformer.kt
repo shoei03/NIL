@@ -28,7 +28,7 @@ class PythonTransformer(config: NILConfig) :
 
     override fun Token.isNegligible(): Boolean =
         this.text.run {
-            this[0] == '\n' || this[0] == ' ' || this[0] == '\r' ||
-                this.isEmpty() || this[0] == '#'
+            this.isEmpty() || this[0] == '\n' || this[0] == ' ' || this[0] == '\r' ||
+                this[0] == '#'
         }
 }
