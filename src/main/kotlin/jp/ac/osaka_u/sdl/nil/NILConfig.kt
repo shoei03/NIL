@@ -98,7 +98,7 @@ class InvalidOptionException(private val option: String) : RuntimeException() {
             |-p, --partition-number${'\t'}${'\t'}${'\t'}The number of partition (default: 10)   
             |-f, --filtration-threshold${'\t'}${'\t'}Filtration threshold (default: 10%)
             |-v, --verification-threshold${'\t'}${'\t'}Verification threshold (default: 70%)
-            |-o, --output${'\t'}${'\t'}${'\t'}${'\t'}Output file name (default: result_{N-gram}_{filtering_threshold}_{verifying_threshold}.csv)
+            |-o, --output${'\t'}${'\t'}${'\t'}${'\t'}Output file path (can include directory) (default: result_{N-gram}_{filtering_threshold}_{verifying_threshold}.csv)
             |-t, --threads${'\t'}${'\t'}${'\t'}${'\t'}The number of threads used for parallel execution (default: all threads)
             |-l, --language${'\t'}${'\t'}${'\t'}${'\t'}Target language (default: java)
             |-bce, --bigcloneeval${'\t'}${'\t'}${'\t'}Output result feasible to BigCloneEval (default: false)
