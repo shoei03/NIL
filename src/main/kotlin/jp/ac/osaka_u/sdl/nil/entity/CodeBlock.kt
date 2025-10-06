@@ -22,8 +22,11 @@ data class CodeBlock(
 ) {
     override fun toString(): String {
         return if (methodName != null) {
-            val paramStr = parameters?.joinToString(";") { "${it.name}:${it.type}" } ?: ""
-            "${fileName},${startLine},${endLine},${methodName},${returnType ?: "None"},[${paramStr}]"
+            val paramStr = parameters?.joinToString(";") { 
+                "${it.name.replace(",", ";")}:${it.type.replace(",", ";")}" 
+            } ?: ""
+            val returnTypeStr = returnType?.replace(",", ";") ?: "None"
+            "${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}]"
         } else {
             "${fileName},${startLine},${endLine}"
         }
