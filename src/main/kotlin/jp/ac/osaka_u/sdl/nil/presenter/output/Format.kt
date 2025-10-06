@@ -2,12 +2,15 @@ package jp.ac.osaka_u.sdl.nil.presenter.output
 
 import jp.ac.osaka_u.sdl.nil.NILMain
 import jp.ac.osaka_u.sdl.nil.NILMain.Companion.CODE_BLOCK_FILE_NAME
+import jp.ac.osaka_u.sdl.nil.entity.CodeBlockInfo
 import java.io.File
 
 abstract class Format {
     fun convert(outputFileName: String) =
         File(outputFileName).bufferedWriter().use { bw ->
-            val codeBlocks: List<String> = File(CODE_BLOCK_FILE_NAME).readLines()
+            val codeBlocks: List<CodeBlockInfo> = File(CODE_BLOCK_FILE_NAME)
+                .readLines()
+                .map { CodeBlockInfo.parse(it) }
             File(NILMain.CLONE_PAIR_FILE_NAME).bufferedReader().use { br ->
                 br.lines()
                     .map { line ->
@@ -20,5 +23,5 @@ abstract class Format {
             }
         }
 
-    protected abstract fun reformat(codeBlock1: String, codeBlock2: String): String
+    protected abstract fun reformat(codeBlock1: CodeBlockInfo, codeBlock2: CodeBlockInfo): String
 }
