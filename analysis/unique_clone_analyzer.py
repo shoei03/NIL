@@ -235,24 +235,29 @@ class UniqueCloneAnalyzer:
             raise IOError(error_msg)
 
 
-def process_all_results_files(results_dir: Path = None, log_file: Path = None) -> None:
-    """Process all CSV files in the results directory."""
-    if results_dir is None:
-        # Default to ../results from the script location
-        script_dir = Path(__file__).parent
-        results_dir = script_dir.parent / "results"
+def process_all_results_files(
+    input_dir: Path, output_dir: Path = None, log_file: Path = None
+) -> None:
+    """Process all CSV files in the input directory."""
+    if not input_dir.exists():
+        raise FileNotFoundError(f"Input directory not found: {input_dir}")
 
-    if not results_dir.exists():
-        raise FileNotFoundError(f"Results directory not found: {results_dir}")
+    # If output_dir is not specified, overwrite input files
+    if output_dir is None:
+        output_dir = input_dir
+    else:
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Find all CSV files in the results directory
-    csv_files = sorted(results_dir.glob("*.csv"))
+    # Find all CSV files in the input directory
+    csv_files = sorted(input_dir.glob("*.csv"))
 
     if not csv_files:
-        logging.warning(f"No CSV files found in {results_dir}")
+        logging.warning(f"No CSV files found in {input_dir}")
         return
 
-    print(f"Found {len(csv_files)} CSV files to process in {results_dir}")
+    print(f"Found {len(csv_files)} CSV files to process in {input_dir}")
+    if output_dir != input_dir:
+        print(f"Output directory: {output_dir}")
 
     # Process each CSV file
     for csv_file in tqdm(csv_files, desc="Processing CSV files"):
@@ -263,8 +268,11 @@ def process_all_results_files(results_dir: Path = None, log_file: Path = None) -
             # Analyze the CSV file
             analyzer.analyze_csv_file(csv_file)
 
-            # Save results (overwrite original file)
-            analyzer.save_results(csv_file)
+            # Determine output path
+            output_path = output_dir / csv_file.name
+
+            # Save results
+            analyzer.save_results(output_path)
 
         except Exception as e:
             logging.error(f"Failed to process {csv_file.name}: {str(e)}")
@@ -281,13 +289,16 @@ def main():
         description="Analyze unique code clone pairs from CSV files"
     )
     parser.add_argument(
-        "input_csv", type=str, nargs="?", help="Input CSV file path (optional)"
+        "-i",
+        "--input-dir",
+        type=str,
+        help="Input directory containing CSV files (default: ../results)",
     )
     parser.add_argument(
         "-o",
-        "--output",
+        "--output-dir",
         type=str,
-        help="Output CSV file path (default: input_with_ids.csv)",
+        help="Output directory for processed CSV files (default: same as input_dir)",
     )
     parser.add_argument(
         "-l",
@@ -295,50 +306,26 @@ def main():
         type=str,
         help="Log file path (default: logs/clone_analyzer_errors_<timestamp>.log)",
     )
-    parser.add_argument(
-        "-a",
-        "--all",
-        action="store_true",
-        help="Process all CSV files in the results directory",
-    )
-    parser.add_argument(
-        "-r",
-        "--results-dir",
-        type=str,
-        help="Results directory path (default: ../results)",
-    )
 
     args = parser.parse_args()
 
     log_path = Path(args.log) if args.log else None
 
     try:
-        if args.all:
-            # Process all files in results directory
-            results_dir = Path(args.results_dir) if args.results_dir else None
-            process_all_results_files(results_dir=results_dir, log_file=log_path)
+        # Determine input directory
+        if args.input_dir:
+            input_dir = Path(args.input_dir)
         else:
-            # Process single file
-            if not args.input_csv:
-                parser.error("input_csv is required when not using --all option")
+            # Default to ../results from the script location
+            script_dir = Path(__file__).parent
+            input_dir = script_dir.parent / "results"
 
-            input_path = Path(args.input_csv)
+        # Determine output directory
+        output_dir = Path(args.output_dir) if args.output_dir else None
 
-            if args.output:
-                output_path = Path(args.output)
-            else:
-                # Default: overwrite the original file (same as --all option)
-                output_path = input_path
-
-            analyzer = UniqueCloneAnalyzer(log_file=log_path)
-            analyzer.analyze_csv_file(input_path)
-            analyzer.save_results(output_path)
-
-            print(
-                f"Analysis completed: "
-                f"Total pairs: {len(analyzer.processed_pairs)}, "
-                f"Unique pairs: {len(analyzer.pair_to_id)}"
-            )
+        process_all_results_files(
+            input_dir=input_dir, output_dir=output_dir, log_file=log_path
+        )
 
     except Exception as e:
         raise SystemExit(f"Error: {e}")
