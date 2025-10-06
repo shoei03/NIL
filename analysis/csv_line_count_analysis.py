@@ -6,19 +6,19 @@ This script analyzes CSV files in the results directory and creates a bar chart
 showing the number of lines in each file.
 """
 
-import glob
-import os
+import argparse
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def get_csv_files(results_dir="/workspace/results"):
+def get_csv_files(input_dir):
     """Get all CSV files from the results directory."""
-    pattern = os.path.join(results_dir, "*.csv")
-    return glob.glob(pattern)
+    results_path = Path(input_dir)
+    return list(results_path.glob("*.csv"))
 
 
 def count_lines_in_csv(file_path):
@@ -33,7 +33,7 @@ def count_lines_in_csv(file_path):
 
 def extract_date_from_filename(filename):
     """Extract date from filename format: results_YYYYMMDD_HHMMSS_hash.csv"""
-    basename = os.path.basename(filename)
+    basename = Path(filename).name
     if basename.startswith("results_") and basename.endswith(".csv"):
         try:
             # Extract date part: YYYYMMDD
@@ -44,10 +44,10 @@ def extract_date_from_filename(filename):
     return None
 
 
-def analyze_csv_files():
+def analyze_csv_files(input_dir, output_dir):
     """Main analysis function."""
     # Get all CSV files
-    csv_files = get_csv_files()
+    csv_files = get_csv_files(input_dir)
 
     if not csv_files:
         print("No CSV files found in the results directory.")
@@ -62,7 +62,7 @@ def analyze_csv_files():
         date = extract_date_from_filename(file_path)
         file_data.append(
             {
-                "filename": os.path.basename(file_path),
+                "filename": Path(file_path).name,
                 "line_count": line_count,
                 "date": date,
                 "file_path": file_path,
@@ -141,11 +141,11 @@ def analyze_csv_files():
     plt.tight_layout()
 
     # Create output directory if it doesn't exist
-    output_dir = "output"
-    os.makedirs(output_dir, exist_ok=True)
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
 
     # Save the plot
-    output_file = os.path.join(output_dir, "csv_line_count_analysis.png")
+    output_file = output_path / "csv_line_count_analysis.png"
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
     print(f"\nVisualization saved as: {output_file}")
 
@@ -153,22 +153,52 @@ def analyze_csv_files():
     plt.show()
 
     # Save detailed results to CSV
-    output_csv = os.path.join(output_dir, "line_count_summary.csv")
+    output_csv = output_path / "line_count_summary.csv"
     df.to_csv(output_csv, index=False)
     print(f"Detailed results saved as: {output_csv}")
 
     return df
 
 
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Analyze CSV files and create visualizations of line counts."
+    )
+    parser.add_argument(
+        "--input",
+        "-i",
+        type=str,
+        default="/workspace/results",
+        help="Input directory containing CSV files (default: /workspace/results)",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="output",
+        help="Output directory for results and visualizations (default: output)",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
     print("CSV Line Count Analysis")
     print("=" * 50)
 
+    # Parse command line arguments
+    args = parse_arguments()
+
     # Check if results directory exists
-    if not os.path.exists("/workspace/results"):
-        print("Error: '/workspace/results' directory not found.")
-        print("Make sure the workspace is properly mounted.")
+    input_path = Path(args.input)
+    if not input_path.exists():
+        print(f"Error: '{args.input}' directory not found.")
+        print("Make sure the directory exists and the path is correct.")
         exit(1)
 
+    print(f"Input directory: {args.input}")
+    print(f"Output directory: {args.output}")
+    print()
+
     # Run analysis
-    df = analyze_csv_files()
+    df = analyze_csv_files(args.input, args.output)
