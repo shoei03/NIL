@@ -80,27 +80,33 @@ class UniqueCloneAnalyzer:
 
         # Setup logging
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.ERROR)
+        self.logger.setLevel(logging.INFO)
 
         if log_file is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             # Create logs directory
             log_dir = Path(__file__).parent / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
-            log_file = log_dir / f"clone_analyzer_errors_{timestamp}.log"
+            log_file = log_dir / f"clone_analyzer_{timestamp}.log"
 
         # Create file handler
-        handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
-        handler.setLevel(logging.ERROR)
+        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        file_handler.setLevel(logging.INFO)
+
+        # Create console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
 
         # Create formatter
         formatter = logging.Formatter(
             "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
-        handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
-        # Add handler to logger
-        self.logger.addHandler(handler)
+        # Add handlers to logger
+        self.logger.addHandler(file_handler)
+        self.logger.addHandler(console_handler)
         self.log_file = log_file
 
     def parse_csv_line(self, row: List[str]) -> CodeClonePair:
@@ -239,6 +245,23 @@ def process_all_results_files(
     input_dir: Path, output_dir: Path = None, log_file: Path = None
 ) -> None:
     """Process all CSV files in the input directory."""
+    # Setup logging for this function
+    logger = logging.getLogger("process_all_results_files")
+    logger.setLevel(logging.INFO)
+
+    if log_file:
+        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        file_handler.setLevel(logging.INFO)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
     if not input_dir.exists():
         raise FileNotFoundError(f"Input directory not found: {input_dir}")
 
@@ -252,12 +275,12 @@ def process_all_results_files(
     csv_files = sorted(input_dir.glob("*.csv"))
 
     if not csv_files:
-        logging.warning(f"No CSV files found in {input_dir}")
+        logger.warning(f"No CSV files found in {input_dir}")
         return
 
-    print(f"Found {len(csv_files)} CSV files to process in {input_dir}")
+    logger.info(f"Found {len(csv_files)} CSV files to process in {input_dir}")
     if output_dir != input_dir:
-        print(f"Output directory: {output_dir}")
+        logger.info(f"Output directory: {output_dir}")
 
     # Process each CSV file
     for csv_file in tqdm(csv_files, desc="Processing CSV files"):
@@ -275,10 +298,10 @@ def process_all_results_files(
             analyzer.save_results(output_path)
 
         except Exception as e:
-            logging.error(f"Failed to process {csv_file.name}: {str(e)}")
+            logger.error(f"Failed to process {csv_file.name}: {str(e)}")
             continue
 
-    print("\nAll files processed successfully!")
+    logger.info("\nAll files processed successfully!")
 
 
 def main():
@@ -304,12 +327,17 @@ def main():
         "-l",
         "--log",
         type=str,
-        help="Log file path (default: logs/clone_analyzer_errors_<timestamp>.log)",
+        default="logs/clone_analyzer.log",
+        help="Log file path (default: logs/clone_analyzer.log)",
     )
 
     args = parser.parse_args()
 
     log_path = Path(args.log) if args.log else None
+
+    # Ensure log directory exists
+    if log_path:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         # Determine input directory
