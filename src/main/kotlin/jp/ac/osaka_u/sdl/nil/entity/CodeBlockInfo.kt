@@ -93,8 +93,13 @@ data class CodeBlockInfo(
      */
     fun toFullString(): String {
         return if (methodName != null) {
-            val paramStr = parameters?.joinToString(";") { "${it.name}:${it.type}" } ?: ""
-            "$fileName,$startLine,$endLine,$methodName,${returnType ?: "None"},[$paramStr]"
+            // Replace commas with semicolons in parameter names and types to avoid CSV parsing issues
+            val paramStr = parameters?.joinToString(";") { 
+                "${it.name.replace(",", ";")}:${it.type.replace(",", ";")}" 
+            } ?: ""
+            // Replace commas in return type as well
+            val sanitizedReturnType = (returnType ?: "None").replace(",", ";")
+            "$fileName,$startLine,$endLine,$methodName,$sanitizedReturnType,[$paramStr]"
         } else {
             toBasicString()
         }
