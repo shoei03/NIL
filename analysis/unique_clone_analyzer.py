@@ -19,11 +19,14 @@ from tqdm import tqdm
 
 @dataclass(frozen=True)
 class CodeBlock:
-    """Represents a code block with file path and line range."""
+    """Represents a code block with file path, line range, function name, return type, and parameters."""
 
     file_path: str
     start_line: int
     end_line: int
+    function_name: str
+    return_type: str
+    parameters: str
 
     def __post_init__(self):
         """Validate the code block data."""
@@ -37,7 +40,7 @@ class CodeBlock:
             )
 
     def __str__(self) -> str:
-        return f"{self.file_path}:{self.start_line}-{self.end_line}"
+        return f"{self.file_path}:{self.start_line}-{self.end_line}:{self.function_name}:{self.return_type}:{self.parameters}"
 
 
 @dataclass(frozen=True)
@@ -50,10 +53,20 @@ class CodeClonePair:
     def __post_init__(self):
         """Normalize the pair to ensure consistent ordering."""
         # Create a normalized version where blocks are ordered consistently
-        if (self.block1.file_path, self.block1.start_line, self.block1.end_line) > (
+        if (
+            self.block1.file_path,
+            self.block1.start_line,
+            self.block1.end_line,
+            self.block1.function_name,
+            self.block1.return_type,
+            self.block1.parameters,
+        ) > (
             self.block2.file_path,
             self.block2.start_line,
             self.block2.end_line,
+            self.block2.function_name,
+            self.block2.return_type,
+            self.block2.parameters,
         ):
             # Swap blocks to maintain consistent ordering
             object.__setattr__(self, "block1", self.block2)
@@ -111,25 +124,44 @@ class UniqueCloneAnalyzer:
 
     def parse_csv_line(self, row: List[str]) -> CodeClonePair:
         """Parse a CSV row into a CodeClonePair."""
-        # Skip already processed files (9 columns)
-        if len(row) == 9:
+        # Skip already processed files (15 columns: 12 original + 3 new)
+        if len(row) == 15:
             return None
-        elif len(row) != 6:
-            raise ValueError(f"Expected 6 columns, got {len(row)}: {row}")
+        elif len(row) != 12:
+            raise ValueError(f"Expected 12 columns, got {len(row)}: {row}")
 
         try:
-            file1, start1, end1, file2, start2, end2 = row
+            (
+                file1,
+                start1,
+                end1,
+                func1,
+                return1,
+                params1,
+                file2,
+                start2,
+                end2,
+                func2,
+                return2,
+                params2,
+            ) = row
 
             block1 = CodeBlock(
                 file_path=file1.strip(),
                 start_line=int(start1.strip()),
                 end_line=int(end1.strip()),
+                function_name=func1.strip(),
+                return_type=return1.strip(),
+                parameters=params1.strip(),
             )
 
             block2 = CodeBlock(
                 file_path=file2.strip(),
                 start_line=int(start2.strip()),
                 end_line=int(end2.strip()),
+                function_name=func2.strip(),
+                return_type=return2.strip(),
+                parameters=params2.strip(),
             )
 
             return CodeClonePair(block1, block2)
@@ -155,6 +187,32 @@ class UniqueCloneAnalyzer:
         self.processed_pairs.append((pair, pair_id, is_first))
         return pair_id, is_first
 
+    def split_csv_line(self, line: str) -> List[str]:
+        """Split a CSV line, ignoring commas inside square brackets."""
+        result = []
+        current = []
+        bracket_depth = 0
+
+        for char in line:
+            if char == "[":
+                bracket_depth += 1
+                current.append(char)
+            elif char == "]":
+                bracket_depth -= 1
+                current.append(char)
+            elif char == "," and bracket_depth == 0:
+                # This comma is a column separator
+                result.append("".join(current))
+                current = []
+            else:
+                current.append(char)
+
+        # Add the last field
+        if current:
+            result.append("".join(current))
+
+        return result
+
     def analyze_csv_file(self, csv_file_path: Path) -> None:
         """Analyze a CSV file containing code clone pairs."""
         if not csv_file_path.exists():
@@ -164,12 +222,14 @@ class UniqueCloneAnalyzer:
 
         error_count = 0
         with open(csv_file_path, "r", encoding="utf-8") as file:
-            reader = csv.reader(file)
-
-            for line_num, row in enumerate(reader, 1):
+            for line_num, line in enumerate(file, 1):
                 try:
-                    if not row or len(row) == 0:
+                    line = line.strip()
+                    if not line:
                         continue  # Skip empty lines
+
+                    # Use custom CSV parser that respects brackets
+                    row = self.split_csv_line(line)
 
                     pair = self.parse_csv_line(row)
                     if pair is None:
@@ -206,13 +266,19 @@ class UniqueCloneAnalyzer:
                 # Write header
                 writer.writerow(
                     [
-                        "pair_id",
                         "file1",
                         "start1",
                         "end1",
+                        "function1",
+                        "return_type1",
+                        "parameters1",
                         "file2",
                         "start2",
                         "end2",
+                        "function2",
+                        "return_type2",
+                        "parameters2",
+                        "pair_id",
                         "is_first_occurrence",
                         "pair_hash",
                     ]
@@ -224,13 +290,19 @@ class UniqueCloneAnalyzer:
                 ):
                     writer.writerow(
                         [
-                            pair_id,
                             pair.block1.file_path,
                             pair.block1.start_line,
                             pair.block1.end_line,
+                            pair.block1.function_name,
+                            pair.block1.return_type,
+                            pair.block1.parameters,
                             pair.block2.file_path,
                             pair.block2.start_line,
                             pair.block2.end_line,
+                            pair.block2.function_name,
+                            pair.block2.return_type,
+                            pair.block2.parameters,
+                            pair_id,
                             is_first,
                             pair.get_hash(),
                         ]
