@@ -260,7 +260,17 @@ class PairDiffAnalyzer:
         with open(summary_path, "w", newline="", encoding="utf-8") as summary_file:
             summary_writer = csv.writer(summary_file)
             summary_writer.writerow(
-                ["t_file", "t1_file", "added_count", "deleted_count", "persisted_count"]
+                [
+                    "t_file",
+                    "t1_file",
+                    "added_count",
+                    "deleted_count",
+                    "persisted_count",
+                    "total",
+                    "added_rate",
+                    "deleted_rate",
+                    "persisted_rate",
+                ]
             )
 
             # Process adjacent pairs of snapshots
@@ -280,20 +290,42 @@ class PairDiffAnalyzer:
                     deleted = prev_set - curr_set
                     persisted = prev_set & curr_set
 
+                    # Calculate counts
+                    added_count = len(added)
+                    deleted_count = len(deleted)
+                    persisted_count = len(persisted)
+                    total = added_count + deleted_count + persisted_count
+
+                    # Calculate rates (avoid division by zero)
+                    if total > 0:
+                        added_rate = added_count / total
+                        deleted_rate = deleted_count / total
+                        persisted_rate = persisted_count / total
+                    else:
+                        added_rate = 0.0
+                        deleted_rate = 0.0
+                        persisted_rate = 0.0
+
                     # Write summary row
                     summary_writer.writerow(
                         [
                             prev_file.name,
                             curr_file.name,
-                            len(added),
-                            len(deleted),
-                            len(persisted),
+                            added_count,
+                            deleted_count,
+                            persisted_count,
+                            total,
+                            added_rate,
+                            deleted_rate,
+                            persisted_rate,
                         ]
                     )
 
                     self.logger.info(
                         f"{prev_file.name} -> {curr_file.name}: "
-                        f"added={len(added)}, deleted={len(deleted)}, persisted={len(persisted)}"
+                        f"added={added_count}, deleted={deleted_count}, persisted={persisted_count}, "
+                        f"total={total}, added_rate={added_rate:.4f}, "
+                        f"deleted_rate={deleted_rate:.4f}, persisted_rate={persisted_rate:.4f}"
                     )
 
                     # Optionally write detailed lists
