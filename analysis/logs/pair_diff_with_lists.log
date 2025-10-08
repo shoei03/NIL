@@ -1,0 +1,109 @@
+2025-10-08 00:54:41 - INFO - Found 36 snapshot files
+2025-10-08 00:54:41 - INFO - results_20111010_015605_87a3370b.csv: 305 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20120209_113131_71b65ab6.csv: 541 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20111010_015605_87a3370b.csv -> results_20120209_113131_71b65ab6.csv: added=350, deleted=114, persisted=191
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20111010_015605_87a3370b_to_results_20120209_113131_71b65ab6
+2025-10-08 00:54:41 - INFO - results_20120529_212811_10e3edea.csv: 793 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20120209_113131_71b65ab6.csv -> results_20120529_212811_10e3edea.csv: added=421, deleted=169, persisted=372
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20120209_113131_71b65ab6_to_results_20120529_212811_10e3edea
+2025-10-08 00:54:41 - INFO - results_20121101_053615_026bc001.csv: 873 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20120529_212811_10e3edea.csv -> results_20121101_053615_026bc001.csv: added=231, deleted=151, persisted=642
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20120529_212811_10e3edea_to_results_20121101_053615_026bc001
+2025-10-08 00:54:41 - INFO - results_20130212_043101_13c5d72a.csv: 1077 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20121101_053615_026bc001.csv -> results_20130212_043101_13c5d72a.csv: added=341, deleted=137, persisted=736
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20121101_053615_026bc001_to_results_20130212_043101_13c5d72a
+2025-10-08 00:54:41 - INFO - results_20130520_021854_68953ed9.csv: 1125 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20130212_043101_13c5d72a.csv -> results_20130520_021854_68953ed9.csv: added=192, deleted=144, persisted=933
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20130212_043101_13c5d72a_to_results_20130520_021854_68953ed9
+2025-10-08 00:54:41 - INFO - results_20130906_121306_ebee2f8e.csv: 1914 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20130520_021854_68953ed9.csv -> results_20130906_121306_ebee2f8e.csv: added=937, deleted=148, persisted=977
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20130520_021854_68953ed9_to_results_20130906_121306_ebee2f8e
+2025-10-08 00:54:41 - INFO - results_20131225_104438_5e6e590e.csv: 2091 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20130906_121306_ebee2f8e.csv -> results_20131225_104438_5e6e590e.csv: added=532, deleted=355, persisted=1559
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20130906_121306_ebee2f8e_to_results_20131225_104438_5e6e590e
+2025-10-08 00:54:41 - INFO - results_20140315_074455_7bb9174e.csv: 2153 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20131225_104438_5e6e590e.csv -> results_20140315_074455_7bb9174e.csv: added=227, deleted=165, persisted=1926
+2025-10-08 00:54:41 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20131225_104438_5e6e590e_to_results_20140315_074455_7bb9174e
+2025-10-08 00:54:41 - INFO - results_20140708_042450_d6eace7b.csv: 2365 unique pairs extracted
+2025-10-08 00:54:41 - INFO - results_20140315_074455_7bb9174e.csv -> results_20140708_042450_d6eace7b.csv: added=409, deleted=197, persisted=1956
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20140315_074455_7bb9174e_to_results_20140708_042450_d6eace7b
+2025-10-08 00:54:42 - INFO - results_20141204_074003_4661525c.csv: 2684 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20140708_042450_d6eace7b.csv -> results_20141204_074003_4661525c.csv: added=525, deleted=206, persisted=2159
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20140708_042450_d6eace7b_to_results_20141204_074003_4661525c
+2025-10-08 00:54:42 - INFO - results_20150625_024213_55d07c0c.csv: 2833 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20141204_074003_4661525c.csv -> results_20150625_024213_55d07c0c.csv: added=286, deleted=137, persisted=2547
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20141204_074003_4661525c_to_results_20150625_024213_55d07c0c
+2025-10-08 00:54:42 - INFO - results_20151119_014958_d6ceebab.csv: 3380 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20150625_024213_55d07c0c.csv -> results_20151119_014958_d6ceebab.csv: added=740, deleted=193, persisted=2640
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20150625_024213_55d07c0c_to_results_20151119_014958_d6ceebab
+2025-10-08 00:54:42 - INFO - results_20160729_092155_aa88215a.csv: 4279 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20151119_014958_d6ceebab.csv -> results_20160729_092155_aa88215a.csv: added=2498, deleted=1599, persisted=1781
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20151119_014958_d6ceebab_to_results_20160729_092155_aa88215a
+2025-10-08 00:54:42 - INFO - results_20170415_224643_61d84dbf.csv: 4782 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20160729_092155_aa88215a.csv -> results_20170415_224643_61d84dbf.csv: added=2679, deleted=2176, persisted=2103
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20160729_092155_aa88215a_to_results_20170415_224643_61d84dbf
+2025-10-08 00:54:42 - INFO - results_20171124_011347_b45325e2.csv: 4858 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20170415_224643_61d84dbf.csv -> results_20171124_011347_b45325e2.csv: added=1683, deleted=1607, persisted=3175
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20170415_224643_61d84dbf_to_results_20171124_011347_b45325e2
+2025-10-08 00:54:42 - INFO - results_20180415_085830_d5d5a718.csv: 5042 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20171124_011347_b45325e2.csv -> results_20180415_085830_d5d5a718.csv: added=1614, deleted=1430, persisted=3428
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20171124_011347_b45325e2_to_results_20180415_085830_d5d5a718
+2025-10-08 00:54:42 - INFO - results_20181029_085706_96d321c7.csv: 5391 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20180415_085830_d5d5a718.csv -> results_20181029_085706_96d321c7.csv: added=1614, deleted=1265, persisted=3777
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20180415_085830_d5d5a718_to_results_20181029_085706_96d321c7
+2025-10-08 00:54:42 - INFO - results_20190309_065227_0d893d08.csv: 5853 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20181029_085706_96d321c7.csv -> results_20190309_065227_0d893d08.csv: added=1388, deleted=926, persisted=4465
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20181029_085706_96d321c7_to_results_20190309_065227_0d893d08
+2025-10-08 00:54:42 - INFO - results_20190822_202836_8f6118c6.csv: 6011 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20190309_065227_0d893d08.csv -> results_20190822_202836_8f6118c6.csv: added=1114, deleted=956, persisted=4897
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20190309_065227_0d893d08_to_results_20190822_202836_8f6118c6
+2025-10-08 00:54:42 - INFO - results_20191207_021832_857b3d66.csv: 6012 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20190822_202836_8f6118c6.csv -> results_20191207_021832_857b3d66.csv: added=1175, deleted=1174, persisted=4837
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20190822_202836_8f6118c6_to_results_20191207_021832_857b3d66
+2025-10-08 00:54:42 - INFO - results_20200215_185511_b41911e5.csv: 6101 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20191207_021832_857b3d66.csv -> results_20200215_185511_b41911e5.csv: added=1202, deleted=1113, persisted=4899
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20191207_021832_857b3d66_to_results_20200215_185511_b41911e5
+2025-10-08 00:54:42 - INFO - results_20200506_164945_18a7e973.csv: 6387 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20200215_185511_b41911e5.csv -> results_20200506_164945_18a7e973.csv: added=1385, deleted=1099, persisted=5002
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20200215_185511_b41911e5_to_results_20200506_164945_18a7e973
+2025-10-08 00:54:42 - INFO - results_20200912_100015_2067d7e3.csv: 6806 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20200506_164945_18a7e973.csv -> results_20200912_100015_2067d7e3.csv: added=954, deleted=535, persisted=5852
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20200506_164945_18a7e973_to_results_20200912_100015_2067d7e3
+2025-10-08 00:54:42 - INFO - results_20201127_011850_43fa1600.csv: 7370 unique pairs extracted
+2025-10-08 00:54:42 - INFO - results_20200912_100015_2067d7e3.csv -> results_20201127_011850_43fa1600.csv: added=1918, deleted=1354, persisted=5452
+2025-10-08 00:54:42 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20200912_100015_2067d7e3_to_results_20201127_011850_43fa1600
+2025-10-08 00:54:43 - INFO - results_20210225_094059_b1363b4c.csv: 7773 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20201127_011850_43fa1600.csv -> results_20210225_094059_b1363b4c.csv: added=1833, deleted=1430, persisted=5940
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20201127_011850_43fa1600_to_results_20210225_094059_b1363b4c
+2025-10-08 00:54:43 - INFO - results_20210608_215541_e4dedcaf.csv: 8396 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20210225_094059_b1363b4c.csv -> results_20210608_215541_e4dedcaf.csv: added=1721, deleted=1098, persisted=6675
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20210225_094059_b1363b4c_to_results_20210608_215541_e4dedcaf
+2025-10-08 00:54:43 - INFO - results_20211021_094940_ad0baebc.csv: 8582 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20210608_215541_e4dedcaf.csv -> results_20211021_094940_ad0baebc.csv: added=864, deleted=678, persisted=7718
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20210608_215541_e4dedcaf_to_results_20211021_094940_ad0baebc
+2025-10-08 00:54:43 - INFO - results_20220216_053338_08104e8c.csv: 8911 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20211021_094940_ad0baebc.csv -> results_20220216_053338_08104e8c.csv: added=1947, deleted=1618, persisted=6964
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20211021_094940_ad0baebc_to_results_20220216_053338_08104e8c
+2025-10-08 00:54:43 - INFO - results_20220824_021826_224458ee.csv: 11120 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20220216_053338_08104e8c.csv -> results_20220824_021826_224458ee.csv: added=3112, deleted=903, persisted=8008
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20220216_053338_08104e8c_to_results_20220824_021826_224458ee
+2025-10-08 00:54:43 - INFO - results_20221228_040034_21d6fcbd.csv: 10033 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20220824_021826_224458ee.csv -> results_20221228_040034_21d6fcbd.csv: added=2119, deleted=3206, persisted=7914
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20220824_021826_224458ee_to_results_20221228_040034_21d6fcbd
+2025-10-08 00:54:43 - INFO - results_20230402_231338_ac79adcf.csv: 11520 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20221228_040034_21d6fcbd.csv -> results_20230402_231338_ac79adcf.csv: added=2745, deleted=1258, persisted=8775
+2025-10-08 00:54:43 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20221228_040034_21d6fcbd_to_results_20230402_231338_ac79adcf
+2025-10-08 00:54:43 - INFO - results_20230805_020630_0eeb8cbe.csv: 12853 unique pairs extracted
+2025-10-08 00:54:43 - INFO - results_20230402_231338_ac79adcf.csv -> results_20230805_020630_0eeb8cbe.csv: added=3056, deleted=1723, persisted=9797
+2025-10-08 00:54:44 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20230402_231338_ac79adcf_to_results_20230805_020630_0eeb8cbe
+2025-10-08 00:54:44 - INFO - results_20231220_064950_ae860227.csv: 14794 unique pairs extracted
+2025-10-08 00:54:44 - INFO - results_20230805_020630_0eeb8cbe.csv -> results_20231220_064950_ae860227.csv: added=4111, deleted=2170, persisted=10683
+2025-10-08 00:54:44 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20230805_020630_0eeb8cbe_to_results_20231220_064950_ae860227
+2025-10-08 00:54:44 - INFO - results_20240517_010707_737c69cf.csv: 14304 unique pairs extracted
+2025-10-08 00:54:44 - INFO - results_20231220_064950_ae860227.csv -> results_20240517_010707_737c69cf.csv: added=2944, deleted=3434, persisted=11360
+2025-10-08 00:54:44 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20231220_064950_ae860227_to_results_20240517_010707_737c69cf
+2025-10-08 00:54:44 - INFO - results_20250301_032259_928fb7eb.csv: 14555 unique pairs extracted
+2025-10-08 00:54:44 - INFO - results_20240517_010707_737c69cf.csv -> results_20250301_032259_928fb7eb.csv: added=1108, deleted=857, persisted=13447
+2025-10-08 00:54:44 - INFO -   Detailed lists written to /app/output/pair_diff_with_lists/results_20240517_010707_737c69cf_to_results_20250301_032259_928fb7eb
+2025-10-08 00:54:44 - INFO - Summary written to /app/output/pair_diff_with_lists/pair_diff_summary.csv
+2025-10-08 00:54:44 - INFO - Analysis complete!

@@ -1,0 +1,16 @@
+2025-10-06 05:16:29,227 - INFO - CSV Line Count Analysis
+2025-10-06 05:16:29,227 - INFO - ==================================================
+2025-10-06 05:16:29,227 - INFO - Input directory: /workspace/results
+2025-10-06 05:16:29,227 - INFO - Output directory: output
+2025-10-06 05:16:29,227 - INFO - Log file: logs/csv_line_count_analysis.log
+2025-10-06 05:16:29,228 - INFO - 
+2025-10-06 05:16:29,228 - INFO - Found 36 CSV files
+2025-10-06 05:16:29,294 - INFO - 
+Summary:
+2025-10-06 05:16:29,294 - INFO - Total files: 36
+2025-10-06 05:16:29,294 - INFO - Total lines: 238,537
+2025-10-06 05:16:29,295 - INFO - Average lines per file: 6626.0
+2025-10-06 05:16:29,295 - INFO - Min lines: 358
+2025-10-06 05:16:29,295 - INFO - Max lines: 14992
+2025-10-06 05:16:29,862 - INFO - Visualization saved as: output/csv_line_count_analysis.png
+2025-10-06 05:16:29,865 - INFO - Detailed results saved as: output/line_count_summary.csv

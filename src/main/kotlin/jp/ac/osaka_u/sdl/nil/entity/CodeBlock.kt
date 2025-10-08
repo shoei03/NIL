@@ -1,6 +1,14 @@
 package jp.ac.osaka_u.sdl.nil.entity
 
 /**
+ * Parameter represents a function parameter with its name and type.
+ */
+data class Parameter(
+    val name: String,
+    val type: String
+)
+
+/**
  * Code block is a single function.
  */
 data class CodeBlock(
@@ -8,7 +16,19 @@ data class CodeBlock(
     val startLine: Int,
     val endLine: Int,
     val tokenSequence: TokenSequence,
+    val methodName: String? = null,
+    val returnType: String? = null,
+    val parameters: List<Parameter>? = null,
 ) {
-    override fun toString(): String =
-        "${fileName},${startLine},${endLine}"
+    override fun toString(): String {
+        return if (methodName != null) {
+            val paramStr = parameters?.joinToString(";") { 
+                "${it.name.replace(",", ";")}:${it.type.replace(",", ";")}" 
+            } ?: ""
+            val returnTypeStr = returnType?.replace(",", ";") ?: "None"
+            "${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}]"
+        } else {
+            "${fileName},${startLine},${endLine}"
+        }
+    }
 }

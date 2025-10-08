@@ -1,0 +1,74 @@
+2025-10-08 04:46:11 - INFO - Found 36 snapshot files
+2025-10-08 04:46:11 - INFO - results_20111010_015605_87a3370b.csv: 305 unique pairs extracted
+2025-10-08 04:46:11 - INFO - results_20120209_113131_71b65ab6.csv: 541 unique pairs extracted
+2025-10-08 04:46:11 - INFO - results_20111010_015605_87a3370b.csv -> results_20120209_113131_71b65ab6.csv: added=350, deleted=114, persisted=191, total=655, added_rate=0.5344, deleted_rate=0.1740, persisted_rate=0.2916
+2025-10-08 04:46:11 - INFO - results_20120529_212811_10e3edea.csv: 793 unique pairs extracted
+2025-10-08 04:46:11 - INFO - results_20120209_113131_71b65ab6.csv -> results_20120529_212811_10e3edea.csv: added=421, deleted=169, persisted=372, total=962, added_rate=0.4376, deleted_rate=0.1757, persisted_rate=0.3867
+2025-10-08 04:46:11 - INFO - results_20121101_053615_026bc001.csv: 873 unique pairs extracted
+2025-10-08 04:46:11 - INFO - results_20120529_212811_10e3edea.csv -> results_20121101_053615_026bc001.csv: added=231, deleted=151, persisted=642, total=1024, added_rate=0.2256, deleted_rate=0.1475, persisted_rate=0.6270
+2025-10-08 04:46:11 - INFO - results_20130212_043101_13c5d72a.csv: 1077 unique pairs extracted
+2025-10-08 04:46:11 - INFO - results_20121101_053615_026bc001.csv -> results_20130212_043101_13c5d72a.csv: added=341, deleted=137, persisted=736, total=1214, added_rate=0.2809, deleted_rate=0.1129, persisted_rate=0.6063
+2025-10-08 04:46:11 - INFO - results_20130520_021854_68953ed9.csv: 1125 unique pairs extracted
+2025-10-08 04:46:11 - INFO - results_20130212_043101_13c5d72a.csv -> results_20130520_021854_68953ed9.csv: added=192, deleted=144, persisted=933, total=1269, added_rate=0.1513, deleted_rate=0.1135, persisted_rate=0.7352
+2025-10-08 04:46:12 - INFO - results_20130906_121306_ebee2f8e.csv: 1914 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20130520_021854_68953ed9.csv -> results_20130906_121306_ebee2f8e.csv: added=937, deleted=148, persisted=977, total=2062, added_rate=0.4544, deleted_rate=0.0718, persisted_rate=0.4738
+2025-10-08 04:46:12 - INFO - results_20131225_104438_5e6e590e.csv: 2091 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20130906_121306_ebee2f8e.csv -> results_20131225_104438_5e6e590e.csv: added=532, deleted=355, persisted=1559, total=2446, added_rate=0.2175, deleted_rate=0.1451, persisted_rate=0.6374
+2025-10-08 04:46:12 - INFO - results_20140315_074455_7bb9174e.csv: 2153 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20131225_104438_5e6e590e.csv -> results_20140315_074455_7bb9174e.csv: added=227, deleted=165, persisted=1926, total=2318, added_rate=0.0979, deleted_rate=0.0712, persisted_rate=0.8309
+2025-10-08 04:46:12 - INFO - results_20140708_042450_d6eace7b.csv: 2365 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20140315_074455_7bb9174e.csv -> results_20140708_042450_d6eace7b.csv: added=409, deleted=197, persisted=1956, total=2562, added_rate=0.1596, deleted_rate=0.0769, persisted_rate=0.7635
+2025-10-08 04:46:12 - INFO - results_20141204_074003_4661525c.csv: 2684 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20140708_042450_d6eace7b.csv -> results_20141204_074003_4661525c.csv: added=525, deleted=206, persisted=2159, total=2890, added_rate=0.1817, deleted_rate=0.0713, persisted_rate=0.7471
+2025-10-08 04:46:12 - INFO - results_20150625_024213_55d07c0c.csv: 2833 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20141204_074003_4661525c.csv -> results_20150625_024213_55d07c0c.csv: added=286, deleted=137, persisted=2547, total=2970, added_rate=0.0963, deleted_rate=0.0461, persisted_rate=0.8576
+2025-10-08 04:46:12 - INFO - results_20151119_014958_d6ceebab.csv: 3380 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20150625_024213_55d07c0c.csv -> results_20151119_014958_d6ceebab.csv: added=740, deleted=193, persisted=2640, total=3573, added_rate=0.2071, deleted_rate=0.0540, persisted_rate=0.7389
+2025-10-08 04:46:12 - INFO - results_20160729_092155_aa88215a.csv: 4279 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20151119_014958_d6ceebab.csv -> results_20160729_092155_aa88215a.csv: added=2498, deleted=1599, persisted=1781, total=5878, added_rate=0.4250, deleted_rate=0.2720, persisted_rate=0.3030
+2025-10-08 04:46:12 - INFO - results_20170415_224643_61d84dbf.csv: 4782 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20160729_092155_aa88215a.csv -> results_20170415_224643_61d84dbf.csv: added=2679, deleted=2176, persisted=2103, total=6958, added_rate=0.3850, deleted_rate=0.3127, persisted_rate=0.3022
+2025-10-08 04:46:12 - INFO - results_20171124_011347_b45325e2.csv: 4858 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20170415_224643_61d84dbf.csv -> results_20171124_011347_b45325e2.csv: added=1683, deleted=1607, persisted=3175, total=6465, added_rate=0.2603, deleted_rate=0.2486, persisted_rate=0.4911
+2025-10-08 04:46:12 - INFO - results_20180415_085830_d5d5a718.csv: 5042 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20171124_011347_b45325e2.csv -> results_20180415_085830_d5d5a718.csv: added=1614, deleted=1430, persisted=3428, total=6472, added_rate=0.2494, deleted_rate=0.2210, persisted_rate=0.5297
+2025-10-08 04:46:12 - INFO - results_20181029_085706_96d321c7.csv: 5391 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20180415_085830_d5d5a718.csv -> results_20181029_085706_96d321c7.csv: added=1614, deleted=1265, persisted=3777, total=6656, added_rate=0.2425, deleted_rate=0.1901, persisted_rate=0.5675
+2025-10-08 04:46:12 - INFO - results_20190309_065227_0d893d08.csv: 5853 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20181029_085706_96d321c7.csv -> results_20190309_065227_0d893d08.csv: added=1388, deleted=926, persisted=4465, total=6779, added_rate=0.2047, deleted_rate=0.1366, persisted_rate=0.6587
+2025-10-08 04:46:12 - INFO - results_20190822_202836_8f6118c6.csv: 6011 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20190309_065227_0d893d08.csv -> results_20190822_202836_8f6118c6.csv: added=1114, deleted=956, persisted=4897, total=6967, added_rate=0.1599, deleted_rate=0.1372, persisted_rate=0.7029
+2025-10-08 04:46:12 - INFO - results_20191207_021832_857b3d66.csv: 6012 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20190822_202836_8f6118c6.csv -> results_20191207_021832_857b3d66.csv: added=1175, deleted=1174, persisted=4837, total=7186, added_rate=0.1635, deleted_rate=0.1634, persisted_rate=0.6731
+2025-10-08 04:46:12 - INFO - results_20200215_185511_b41911e5.csv: 6101 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20191207_021832_857b3d66.csv -> results_20200215_185511_b41911e5.csv: added=1202, deleted=1113, persisted=4899, total=7214, added_rate=0.1666, deleted_rate=0.1543, persisted_rate=0.6791
+2025-10-08 04:46:12 - INFO - results_20200506_164945_18a7e973.csv: 6387 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20200215_185511_b41911e5.csv -> results_20200506_164945_18a7e973.csv: added=1385, deleted=1099, persisted=5002, total=7486, added_rate=0.1850, deleted_rate=0.1468, persisted_rate=0.6682
+2025-10-08 04:46:12 - INFO - results_20200912_100015_2067d7e3.csv: 6806 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20200506_164945_18a7e973.csv -> results_20200912_100015_2067d7e3.csv: added=954, deleted=535, persisted=5852, total=7341, added_rate=0.1300, deleted_rate=0.0729, persisted_rate=0.7972
+2025-10-08 04:46:12 - INFO - results_20201127_011850_43fa1600.csv: 7370 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20200912_100015_2067d7e3.csv -> results_20201127_011850_43fa1600.csv: added=1918, deleted=1354, persisted=5452, total=8724, added_rate=0.2199, deleted_rate=0.1552, persisted_rate=0.6249
+2025-10-08 04:46:12 - INFO - results_20210225_094059_b1363b4c.csv: 7773 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20201127_011850_43fa1600.csv -> results_20210225_094059_b1363b4c.csv: added=1833, deleted=1430, persisted=5940, total=9203, added_rate=0.1992, deleted_rate=0.1554, persisted_rate=0.6454
+2025-10-08 04:46:12 - INFO - results_20210608_215541_e4dedcaf.csv: 8396 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20210225_094059_b1363b4c.csv -> results_20210608_215541_e4dedcaf.csv: added=1721, deleted=1098, persisted=6675, total=9494, added_rate=0.1813, deleted_rate=0.1157, persisted_rate=0.7031
+2025-10-08 04:46:12 - INFO - results_20211021_094940_ad0baebc.csv: 8582 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20210608_215541_e4dedcaf.csv -> results_20211021_094940_ad0baebc.csv: added=864, deleted=678, persisted=7718, total=9260, added_rate=0.0933, deleted_rate=0.0732, persisted_rate=0.8335
+2025-10-08 04:46:12 - INFO - results_20220216_053338_08104e8c.csv: 8911 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20211021_094940_ad0baebc.csv -> results_20220216_053338_08104e8c.csv: added=1947, deleted=1618, persisted=6964, total=10529, added_rate=0.1849, deleted_rate=0.1537, persisted_rate=0.6614
+2025-10-08 04:46:12 - INFO - results_20220824_021826_224458ee.csv: 11120 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20220216_053338_08104e8c.csv -> results_20220824_021826_224458ee.csv: added=3112, deleted=903, persisted=8008, total=12023, added_rate=0.2588, deleted_rate=0.0751, persisted_rate=0.6661
+2025-10-08 04:46:12 - INFO - results_20221228_040034_21d6fcbd.csv: 10033 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20220824_021826_224458ee.csv -> results_20221228_040034_21d6fcbd.csv: added=2119, deleted=3206, persisted=7914, total=13239, added_rate=0.1601, deleted_rate=0.2422, persisted_rate=0.5978
+2025-10-08 04:46:12 - INFO - results_20230402_231338_ac79adcf.csv: 11520 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20221228_040034_21d6fcbd.csv -> results_20230402_231338_ac79adcf.csv: added=2745, deleted=1258, persisted=8775, total=12778, added_rate=0.2148, deleted_rate=0.0985, persisted_rate=0.6867
+2025-10-08 04:46:12 - INFO - results_20230805_020630_0eeb8cbe.csv: 12853 unique pairs extracted
+2025-10-08 04:46:12 - INFO - results_20230402_231338_ac79adcf.csv -> results_20230805_020630_0eeb8cbe.csv: added=3056, deleted=1723, persisted=9797, total=14576, added_rate=0.2097, deleted_rate=0.1182, persisted_rate=0.6721
+2025-10-08 04:46:12 - INFO - results_20231220_064950_ae860227.csv: 14794 unique pairs extracted
+2025-10-08 04:46:13 - INFO - results_20230805_020630_0eeb8cbe.csv -> results_20231220_064950_ae860227.csv: added=4111, deleted=2170, persisted=10683, total=16964, added_rate=0.2423, deleted_rate=0.1279, persisted_rate=0.6297
+2025-10-08 04:46:13 - INFO - results_20240517_010707_737c69cf.csv: 14304 unique pairs extracted
+2025-10-08 04:46:13 - INFO - results_20231220_064950_ae860227.csv -> results_20240517_010707_737c69cf.csv: added=2944, deleted=3434, persisted=11360, total=17738, added_rate=0.1660, deleted_rate=0.1936, persisted_rate=0.6404
+2025-10-08 04:46:13 - INFO - results_20250301_032259_928fb7eb.csv: 14555 unique pairs extracted
+2025-10-08 04:46:13 - INFO - results_20240517_010707_737c69cf.csv -> results_20250301_032259_928fb7eb.csv: added=1108, deleted=857, persisted=13447, total=15412, added_rate=0.0719, deleted_rate=0.0556, persisted_rate=0.8725
+2025-10-08 04:46:13 - INFO - Summary written to /app/output/pair_diff_summary.csv
+2025-10-08 04:46:13 - INFO - Analysis complete!
