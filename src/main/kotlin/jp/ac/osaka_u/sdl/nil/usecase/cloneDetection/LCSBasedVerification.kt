@@ -9,4 +9,11 @@ class LCSBasedVerification(private val lcs: LCS, private val threshold: Int) : V
         val min = min(tokenSequence1.size, tokenSequence2.size)
         return lcs.calcLength(tokenSequence1, tokenSequence2) * 100 / min >= threshold
     }
+
+    override fun verifyWithSimilarity(tokenSequence1: TokenSequence, tokenSequence2: TokenSequence): Pair<Boolean, Int> {
+        val min = min(tokenSequence1.size, tokenSequence2.size)
+        val lcsLength = lcs.calcLength(tokenSequence1, tokenSequence2)
+        val similarity = lcsLength * 100 / min
+        return Pair(similarity >= threshold, similarity)
+    }
 }
