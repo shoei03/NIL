@@ -64,7 +64,10 @@ class NILMain(private val config: NILConfig) {
                     .runOn(Schedulers.computation())
                     .flatMap { cloneDetection.exec(it) }
                     .sequential()
-                    .blockingSubscribe { bw.appendLine("${it.first},${it.second}") }
+                    .blockingSubscribe { result ->
+                        val lcsStr = result.lcsSimilarity?.toString() ?: ""
+                        bw.appendLine("${result.id1},${result.id2},${result.nGramSimilarity},$lcsStr")
+                    }
                 logger.infoCloneDetectionCompletion(i + 1)
             }
         }
