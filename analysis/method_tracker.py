@@ -2,8 +2,9 @@
 """
 Method Evolution Tracker
 
-Tracks methods across snapshots using exact matching (path, method name, signature).
-This is the basic implementation for Phase 1.
+Tracks methods across snapshots using:
+- Phase 1: Exact matching (path, method name, signature)
+- Phase 2: Similarity-based matching (N-gram, LCS)
 """
 
 import argparse
@@ -15,6 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+from similarity_calculator import SimilarityCalculator
 from tqdm import tqdm
 
 
@@ -30,6 +32,7 @@ class MethodInfo:
     parameters: str
     commit_hash: str
     token_hash: str
+    token_sequence: Optional[List[int]] = None
 
     @property
     def signature(self) -> str:
@@ -58,8 +61,22 @@ class MethodMatch:
 class MethodTracker:
     """Tracks methods across snapshots."""
 
-    def __init__(self, log_file: Optional[Path] = None):
-        """Initialize the tracker with optional log file."""
+    def __init__(
+        self,
+        log_file: Optional[Path] = None,
+        use_similarity: bool = False,
+        ngram_threshold: int = 10,
+        lcs_threshold: int = 70,
+    ):
+        """
+        Initialize the tracker with optional log file.
+
+        Args:
+            log_file: Path to log file
+            use_similarity: Enable similarity-based matching (Phase 2)
+            ngram_threshold: N-gram similarity threshold (default: 10%, same as NIL filtration)
+            lcs_threshold: LCS similarity threshold (default: 70%, same as NIL verification)
+        """
         # Setup logging
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
@@ -90,6 +107,16 @@ class MethodTracker:
         self.logger.addHandler(console_handler)
         self.log_file = log_file
 
+        # Initialize similarity calculator if enabled
+        self.use_similarity = use_similarity
+        self.ngram_threshold = ngram_threshold
+        self.lcs_threshold = lcs_threshold
+        if use_similarity:
+            self.similarity_calc = SimilarityCalculator(gram_size=5)
+            self.logger.info(
+                f"Similarity matching enabled: N-gram threshold={ngram_threshold}%, LCS threshold={lcs_threshold}%"
+            )
+
     def parse_code_blocks(self, file_path: Path) -> Dict[str, MethodInfo]:
         """
         Parse code_blocks file and return a dictionary of methods.
@@ -110,8 +137,45 @@ class MethodTracker:
                     try:
                         parts = line.split(",")
 
-                        # Check if this is the new format with 8 columns
-                        if len(parts) >= 8:
+                        # Check if this is the new format with 9 columns (includes token_sequence)
+                        if len(parts) >= 9:
+                            file_p = parts[0]
+                            start = int(parts[1])
+                            end = int(parts[2])
+                            method = parts[3]
+                            ret_type = parts[4]
+                            # Handle parameters in brackets
+                            params_match = re.search(r"\[(.*?)\]", line)
+                            params = params_match.group(1) if params_match else ""
+                            commit_hash = parts[-3]
+                            token_hash = parts[-2]
+
+                            # Extract token sequence from the last bracketed section
+                            token_seq_match = re.search(r"\[([0-9;-]+)\]$", line)
+                            token_sequence = None
+                            if token_seq_match:
+                                token_str = token_seq_match.group(1)
+                                if token_str:
+                                    token_sequence = [
+                                        int(t) for t in token_str.split(";")
+                                    ]
+
+                            method_info = MethodInfo(
+                                file_path=file_p,
+                                start_line=start,
+                                end_line=end,
+                                method_name=method,
+                                return_type=ret_type,
+                                parameters=params,
+                                commit_hash=commit_hash,
+                                token_hash=token_hash,
+                                token_sequence=token_sequence,
+                            )
+
+                            methods[method_info.full_id] = method_info
+
+                        # Check if this is the format with 8 columns (no token_sequence)
+                        elif len(parts) >= 8:
                             file_p = parts[0]
                             start = int(parts[1])
                             end = int(parts[2])
@@ -132,6 +196,7 @@ class MethodTracker:
                                 parameters=params,
                                 commit_hash=commit_hash,
                                 token_hash=token_hash,
+                                token_sequence=None,
                             )
 
                             methods[method_info.full_id] = method_info
@@ -193,6 +258,155 @@ class MethodTracker:
 
         return matches
 
+    def find_token_hash_matches(
+        self,
+        unmatched_t: Dict[str, MethodInfo],
+        unmatched_t1: Dict[str, MethodInfo],
+    ) -> List[MethodMatch]:
+        """
+        Find matches based on TokenSequence hash.
+
+        This detects methods with identical implementation but different names/locations.
+        """
+        matches = []
+
+        # Group by token_hash
+        hash_to_methods_t = {}
+        for method_id, method in unmatched_t.items():
+            if method.token_hash:
+                if method.token_hash not in hash_to_methods_t:
+                    hash_to_methods_t[method.token_hash] = []
+                hash_to_methods_t[method.token_hash].append(method)
+
+        hash_to_methods_t1 = {}
+        for method_id, method in unmatched_t1.items():
+            if method.token_hash:
+                if method.token_hash not in hash_to_methods_t1:
+                    hash_to_methods_t1[method.token_hash] = []
+                hash_to_methods_t1[method.token_hash].append(method)
+
+        # Match methods with same token_hash
+        for token_hash in hash_to_methods_t:
+            if token_hash in hash_to_methods_t1:
+                methods_t = hash_to_methods_t[token_hash]
+                methods_t1 = hash_to_methods_t1[token_hash]
+
+                # Simple 1-to-1 pairing (first-come-first-served)
+                for method_t in methods_t:
+                    if not methods_t1:
+                        break
+                    method_t1 = methods_t1.pop(0)
+                    matches.append(
+                        MethodMatch(
+                            method_t=method_t,
+                            method_t1=method_t1,
+                            match_type="token_hash",
+                            similarity=1.0,
+                        )
+                    )
+
+        return matches
+
+    def find_similarity_matches(
+        self,
+        unmatched_t: Dict[str, MethodInfo],
+        unmatched_t1: Dict[str, MethodInfo],
+    ) -> List[MethodMatch]:
+        """
+        Find matches based on TokenSequence similarity using N-gram and LCS.
+
+        Match types:
+        - renamed: Same file, high similarity (LCS >= 90%)
+        - moved: Different file, high similarity (LCS >= 90%)
+        - signature_changed: Same file, same method name, different signature, high similarity
+        - refactored: Medium similarity (LCS >= threshold)
+        """
+        if not self.use_similarity:
+            return []
+
+        matches = []
+        matched_t = set()
+        matched_t1 = set()
+
+        # Prepare method lists with token sequences
+        methods_t = [
+            (method_id, method)
+            for method_id, method in unmatched_t.items()
+            if method.token_sequence and len(method.token_sequence) > 0
+        ]
+        methods_t1 = [
+            (method_id, method)
+            for method_id, method in unmatched_t1.items()
+            if method.token_sequence and len(method.token_sequence) > 0
+        ]
+
+        self.logger.info(
+            f"Finding similarity matches: {len(methods_t)} x {len(methods_t1)} comparisons"
+        )
+
+        # Compare all pairs
+        for method_id_t, method_t in methods_t:
+            if method_id_t in matched_t:
+                continue
+
+            best_match = None
+            best_lcs_sim = 0
+
+            for method_id_t1, method_t1 in methods_t1:
+                if method_id_t1 in matched_t1:
+                    continue
+
+                # Calculate N-gram similarity first (faster filter)
+                ngram_sim = self.similarity_calc.calc_ngram_similarity(
+                    method_t.token_sequence, method_t1.token_sequence
+                )
+
+                # Skip if below N-gram threshold
+                if ngram_sim < self.ngram_threshold:
+                    continue
+
+                # Calculate LCS similarity for verification
+                lcs_sim = self.similarity_calc.calc_lcs_similarity(
+                    method_t.token_sequence, method_t1.token_sequence
+                )
+
+                # Keep track of best match
+                if lcs_sim >= self.lcs_threshold and lcs_sim > best_lcs_sim:
+                    best_lcs_sim = lcs_sim
+                    best_match = (method_id_t1, method_t1, lcs_sim)
+
+            # Create match if found
+            if best_match:
+                method_id_t1, method_t1, lcs_sim = best_match
+
+                # Determine match type
+                if method_t.file_path == method_t1.file_path:
+                    if method_t.method_name == method_t1.method_name:
+                        match_type = "signature_changed"
+                    elif lcs_sim >= 90:
+                        match_type = "renamed"
+                    else:
+                        match_type = "refactored"
+                elif lcs_sim >= 90:
+                    match_type = "moved"
+                else:
+                    match_type = "refactored"
+
+                matches.append(
+                    MethodMatch(
+                        method_t=method_t,
+                        method_t1=method_t1,
+                        match_type=match_type,
+                        similarity=lcs_sim / 100.0,
+                    )
+                )
+
+                matched_t.add(method_id_t)
+                matched_t1.add(method_id_t1)
+
+        self.logger.info(f"Found {len(matches)} similarity-based matches")
+        return matches
+
     def analyze_changes(
         self,
         snapshot_t: Dict[str, MethodInfo],
@@ -204,18 +418,51 @@ class MethodTracker:
         Returns:
             (matches, added_ids, deleted_ids)
         """
-        # Find exact matches
-        matches = self.find_exact_matches(snapshot_t, snapshot_t1)
+        all_matches = []
+
+        # Step 1: Find exact matches (highest priority)
+        exact_matches = self.find_exact_matches(snapshot_t, snapshot_t1)
+        all_matches.extend(exact_matches)
+        self.logger.info(f"Exact matches: {len(exact_matches)}")
 
         # Get matched method IDs
-        matched_t = {match.method_t.full_id for match in matches}
-        matched_t1 = {match.method_t1.full_id for match in matches}
+        matched_t = {match.method_t.full_id for match in all_matches}
+        matched_t1 = {match.method_t1.full_id for match in all_matches}
 
-        # Find added and deleted methods
+        # Get unmatched methods
+        unmatched_t = {k: v for k, v in snapshot_t.items() if k not in matched_t}
+        unmatched_t1 = {k: v for k, v in snapshot_t1.items() if k not in matched_t1}
+
+        # Step 2: Find token hash matches (identical implementation)
+        if unmatched_t and unmatched_t1:
+            token_matches = self.find_token_hash_matches(unmatched_t, unmatched_t1)
+            all_matches.extend(token_matches)
+            self.logger.info(f"Token hash matches: {len(token_matches)}")
+
+            # Update matched sets
+            for match in token_matches:
+                matched_t.add(match.method_t.full_id)
+                matched_t1.add(match.method_t1.full_id)
+
+            # Update unmatched
+            unmatched_t = {k: v for k, v in snapshot_t.items() if k not in matched_t}
+            unmatched_t1 = {k: v for k, v in snapshot_t1.items() if k not in matched_t1}
+
+        # Step 3: Find similarity-based matches (if enabled)
+        if self.use_similarity and unmatched_t and unmatched_t1:
+            sim_matches = self.find_similarity_matches(unmatched_t, unmatched_t1)
+            all_matches.extend(sim_matches)
+
+            # Update matched sets
+            for match in sim_matches:
+                matched_t.add(match.method_t.full_id)
+                matched_t1.add(match.method_t1.full_id)
+
+        # Find added and deleted methods (final unmatched)
         added_ids = set(snapshot_t1.keys()) - matched_t1
         deleted_ids = set(snapshot_t.keys()) - matched_t
 
-        return matches, added_ids, deleted_ids
+        return all_matches, added_ids, deleted_ids
 
     def track_methods(self, code_blocks_dir: Path, output_dir: Path) -> None:
         """
@@ -264,6 +511,11 @@ class MethodTracker:
                     "snapshot_t",
                     "snapshot_t1",
                     "exact_matches",
+                    "token_hash_matches",
+                    "renamed",
+                    "moved",
+                    "signature_changed",
+                    "refactored",
                     "added_methods",
                     "deleted_methods",
                     "total_t",
@@ -283,6 +535,7 @@ class MethodTracker:
                     "line_range_t1",
                     "commit_t",
                     "commit_t1",
+                    "similarity",
                 ]
             )
 
@@ -303,12 +556,31 @@ class MethodTracker:
                         prev_snapshot, curr_snapshot
                     )
 
+                    # Count matches by type
+                    match_counts = {
+                        "exact": 0,
+                        "token_hash": 0,
+                        "renamed": 0,
+                        "moved": 0,
+                        "signature_changed": 0,
+                        "refactored": 0,
+                    }
+                    for match in matches:
+                        match_counts[match.match_type] = (
+                            match_counts.get(match.match_type, 0) + 1
+                        )
+
                     # Write summary
                     summary_writer.writerow(
                         [
                             prev_commit,
                             curr_commit,
-                            len(matches),
+                            match_counts["exact"],
+                            match_counts["token_hash"],
+                            match_counts["renamed"],
+                            match_counts["moved"],
+                            match_counts["signature_changed"],
+                            match_counts["refactored"],
                             len(added_ids),
                             len(deleted_ids),
                             len(prev_snapshot),
@@ -316,13 +588,13 @@ class MethodTracker:
                         ]
                     )
 
-                    # Write exact matches
+                    # Write matches
                     for match in matches:
                         details_writer.writerow(
                             [
                                 prev_commit,
                                 curr_commit,
-                                "exact_match",
+                                match.match_type,
                                 match.method_t.file_path,
                                 match.method_t.method_name,
                                 match.method_t.signature,
@@ -330,6 +602,7 @@ class MethodTracker:
                                 f"{match.method_t1.start_line}-{match.method_t1.end_line}",
                                 match.method_t.commit_hash,
                                 match.method_t1.commit_hash,
+                                f"{match.similarity:.3f}",
                             ]
                         )
 
@@ -348,6 +621,7 @@ class MethodTracker:
                                 f"{method.start_line}-{method.end_line}",
                                 "",
                                 method.commit_hash,
+                                "",
                             ]
                         )
 
@@ -366,12 +640,19 @@ class MethodTracker:
                                 "",
                                 method.commit_hash,
                                 "",
+                                "",
                             ]
                         )
 
                     self.logger.info(
                         f"{prev_commit} -> {curr_commit}: "
-                        f"exact={len(matches)}, added={len(added_ids)}, deleted={len(deleted_ids)}"
+                        f"exact={match_counts['exact']}, "
+                        f"token_hash={match_counts['token_hash']}, "
+                        f"renamed={match_counts['renamed']}, "
+                        f"moved={match_counts['moved']}, "
+                        f"sig_changed={match_counts['signature_changed']}, "
+                        f"refactored={match_counts['refactored']}, "
+                        f"added={len(added_ids)}, deleted={len(deleted_ids)}"
                     )
 
                 prev_file = curr_file
@@ -385,7 +666,7 @@ class MethodTracker:
 def main():
     """Main function to run the method tracker."""
     parser = argparse.ArgumentParser(
-        description="Track methods across code_blocks snapshots"
+        description="Track methods across code_blocks snapshots (Phase 1 & 2)"
     )
     parser.add_argument(
         "-i",
@@ -406,11 +687,33 @@ def main():
         type=Path,
         help="Log file path (optional)",
     )
+    parser.add_argument(
+        "--use-similarity",
+        action="store_true",
+        help="Enable Phase 2 similarity-based matching (N-gram and LCS)",
+    )
+    parser.add_argument(
+        "--ngram-threshold",
+        type=int,
+        default=10,
+        help="N-gram similarity threshold (default: 10%%, same as NIL filtration)",
+    )
+    parser.add_argument(
+        "--lcs-threshold",
+        type=int,
+        default=70,
+        help="LCS similarity threshold (default: 70%%, same as NIL verification)",
+    )
 
     args = parser.parse_args()
 
     # Run tracker
-    tracker = MethodTracker(log_file=args.log)
+    tracker = MethodTracker(
+        log_file=args.log,
+        use_similarity=args.use_similarity,
+        ngram_threshold=args.ngram_threshold,
+        lcs_threshold=args.lcs_threshold,
+    )
     tracker.logger.info(f"Input directory: {args.input}")
     tracker.logger.info(f"Output directory: {args.output}")
     tracker.logger.info(f"Log file: {tracker.log_file}")
