@@ -19,9 +19,11 @@ NIL provides scalable large-variance clone detection.
 - Run NIL (`java -jar ./build/libs/NIL-all.jar [options]`)
 - Check the result file
   - If you didn't specify `-bce` option, the format is
-    `/path/to/file_A,start_line_A,end_line_A,/path/to/file_B,start_line_B,end_line_B`.
+    `/path/to/file_A,start_line_A,end_line_A,/path/to/file_B,start_line_B,end_line_B,ngram_similarity,lcs_similarity`.
+    - `ngram_similarity`: N-gram based similarity percentage (always present)
+    - `lcs_similarity`: LCS based similarity percentage (present only when LCS verification was performed)
   - If you specified `-bce` option, the format is
-    `dir_A,file_A,start_line_A,end_line_A,dir_B,file_B,start_line_B,end_line_B`
+    `dir_A,file_A,start_line_A,end_line_A,dir_B,file_B,start_line_B,end_line_B,ngram_similarity,lcs_similarity`
 
 ## Options
 
