@@ -1,29 +1,43 @@
-# Method Evolution Tracking - Phase 1 Implementation
+# Method Evolution Tracking - Phase 1 & 2 Implementation
 
 ## 概要
 
-メソッドの時系列追跡機能の基礎実装（Phase 1）が完了しました。この機能により、コードベースのスナップショット間でメソッドの進化を追跡できます。
+メソッドの時系列追跡機能（Phase 1 & 2）が完了しました。この機能により、コードベースのスナップショット間でメソッドの進化を追跡できます。
+
+### Phase 1: 完全一致ベースの追跡
+
+- ファイルパス + メソッド名 + シグネチャによる exact matching
+- TokenSequence ハッシュによる同一実装の検出
+
+### Phase 2: 類似度ベースの追跡
+
+- N-gram 類似度と LCS 類似度を使用した高度なマッチング
+- リネーム、ファイル移動、シグネチャ変更、リファクタリングの検出
+- NIL と同じアルゴリズム（N-gram 10%、LCS 70%）を使用
 
 ## 実装内容
 
 ### 1. code_blocks ファイルの拡張
 
-#### 新しいフォーマット
+#### 新しいフォーマット（Phase 2）
 
 ```
-file,start,end,method,return_type,[params],commit_hash,token_hash
+file,start,end,method,return_type,[params],commit_hash,token_hash,[token_sequence]
 ```
 
 **例:**
 
 ```
-/app/Repos/pandas/asv_bench/benchmarks/gil.py,39,87,run_parallel,None,[num_threads:Any;kwargs_list:Any],db31f6a3,1f2ab0673e47c4ad2b3cbf17a3d0e44a
+/app/Repos/pandas/pandas/core/index.py,30,40,__new__,None,[cls:Any;data:Any;dtype:Any;copy:Any],test_token,0c362c81595e07713cf135cb0aaa4389,[99333;1237986720;98602;3076010;...]
 ```
 
 #### 追加された情報
 
 - **commit_hash**: Git コミットハッシュ（8 桁）
 - **token_hash**: トークン列の MD5 ハッシュ（メソッド実装の一意識別子）
+- **token_sequence**: トークン列（整数のリスト、セミコロン区切り） ← **Phase 2 で追加**
+
+**ファイルサイズ**: TokenSequence 追加により約 6-7 倍に増加（46KB → 295KB）
 
 ### 2. スナップショット別保存
 
@@ -41,13 +55,24 @@ code_blocks/
 
 ### 3. Method Tracker（メソッド追跡スクリプト）
 
-#### 機能
+#### Phase 1 の機能
 
-- **完全一致検出**: ファイルパス + メソッド名 + シグネチャによる追跡
-- **変更検出**:
-  - 追加されたメソッド (added)
-  - 削除されたメソッド (deleted)
-  - 維持されたメソッド (exact match)
+- **完全一致検出** (`exact`): ファイルパス + メソッド名 + シグネチャによる追跡
+- **TokenHash マッチング** (`token_hash`): 同一実装（異なる名前・場所）の検出
+- **変更検出**: 追加 (added)、削除 (deleted)
+
+#### Phase 2 の機能（`--use-similarity`で有効化）
+
+- **リネーム検出** (`renamed`): 同ファイル内、高類似度（LCS ≥ 90%）
+- **ファイル移動検出** (`moved`): 異なるファイル、高類似度（LCS ≥ 90%）
+- **シグネチャ変更** (`signature_changed`): 同ファイル、同メソッド名、異なる引数
+- **リファクタリング** (`refactored`): 中程度の類似度（LCS ≥ 70%）
+
+#### 類似度計算アルゴリズム
+
+- **N-gram 類似度**: フィルタリング閾値 10%（NIL と同じ）
+- **LCS 類似度**: 検証閾値 70%（NIL と同じ）
+- **Hunt-Szymanski LCS**: O(N log N)の高速アルゴリズム
 
 #### 使用方法
 
@@ -71,10 +96,32 @@ python analysis/method_tracker.py \
 
 #### オプション
 
-- `-i, --input`: code_blocks ファイルまたはそれらを含むディレクトリのパス（デフォルト: `code_blocks`）
+- `-i, --input`: code_blocks ファイルまたはそれらを含むディレクトリのパス（必須）
   - ディレクトリを指定すると、その中の全ての code_blocks ファイルを自動検出して処理
-- `-o, --output`: 出力ディレクトリ（デフォルト: `analysis/output`）
-- `--log`: ログファイルパス（デフォルト: `analysis/logs/method_tracker.log`）
+- `-o, --output`: 出力ディレクトリ（必須）
+- `--log`: ログファイルパス（オプション）
+- `--use-similarity`: Phase 2 の類似度ベースマッチングを有効化
+- `--ngram-threshold`: N-gram 類似度閾値（デフォルト: 10%、NIL と同じ）
+- `--lcs-threshold`: LCS 類似度閾値（デフォルト: 70%、NIL と同じ）
+
+#### Phase 1 の実行例（基本）
+
+```bash
+python analysis/method_tracker.py \
+  -i code_blocks \
+  -o analysis/output/tracking_results \
+  --log analysis/logs/tracking.log
+```
+
+#### Phase 2 の実行例（類似度マッチング有効）
+
+```bash
+python analysis/method_tracker.py \
+  -i code_blocks \
+  -o analysis/output/tracking_results \
+  --log analysis/logs/tracking.log \
+  --use-similarity
+```
 
 ````
 
@@ -166,31 +213,43 @@ class MethodTracker:
   - added: 130
   - deleted: 73
 
-## 制限事項（Phase 1）
+## Phase 2 の実装状況
 
-現在の実装では以下の制限があります：
+### ✅ 実装完了した機能
 
-1. **完全一致のみ**: メソッド名とシグネチャの完全一致のみを検出
-2. **リネーム未対応**: メソッド名が変更された場合は追跡できない
-3. **シグネチャ変更未対応**: 引数が変更された場合は追跡できない
-4. **ファイル移動未対応**: ファイルが移動された場合は追跡できない
+1. **TokenSequence 保存**: code_blocks ファイルにトークン列を保存
+2. **類似度計算**: N-gram 類似度と LCS 類似度（NIL と同じアルゴリズム）
+3. **マッチング戦略**:
+   - TokenHash マッチング: 同一実装の検出
+   - リネーム検出: 同ファイル内、高類似度（LCS ≥ 90%）
+   - ファイル移動検出: 異なるファイル、高類似度（LCS ≥ 90%）
+   - シグネチャ変更: 同ファイル、同メソッド名、異なる引数
+   - リファクタリング: 中程度の類似度（LCS ≥ 70%）
 
-これらは、Phase 2（類似度ベースのマッチング）で対応予定です。
+### 使用方法
 
-## 次のステップ（Phase 2）
+```bash
+# Phase 2を有効にしてメソッド追跡
+cd analysis
+docker compose run --rm analysis python method_tracker.py \
+  -i /workspace \
+  -o /app/output/phase2_tracking \
+  --use-similarity \
+  --ngram-threshold 10 \
+  --lcs-threshold 70
+```
 
-### 類似度ベースのマッチング
+### パフォーマンス
 
-1. **TokenSequence ハッシュ比較**: 完全一致の高速検出
-2. **N-gram 類似度**: 部分的な変更に対応
-3. **LCS 類似度**: より精密な比較
+- N-gram 類似度: O(N) - 高速フィルタリング
+- LCS 類似度: O(N log N) - Hunt-Szymanski アルゴリズム
+- ファイルサイズ: 約 6-7 倍増加（TokenSequence 保存のため）
 
-### 検出可能な変更タイプ
+## 将来の拡張（Phase 3）
 
-- リネーム (同ファイル内、高類似度)
-- シグネチャ変更 (引数追加/削除)
-- ファイル移動 (異なるファイル、高類似度)
-- リファクタリング (メソッド分割/統合)
+- メソッド分割/統合の検出
+- より複雑なリファクタリングパターンの識別
+- 変更理由の自動推論
 
 ## 関連ファイル
 
@@ -203,7 +262,8 @@ class MethodTracker:
 
 ### Python
 
-- `analysis/method_tracker.py`
+- `analysis/method_tracker.py` - メソッド追跡スクリプト（Phase 1 & 2）
+- `analysis/similarity_calculator.py` - N-gram/LCS 類似度計算（Phase 2）
 
 ### Shell
 

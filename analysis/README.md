@@ -1,6 +1,32 @@
 # Analysis Directory
 
-This directory contains Python scripts for analyzing CSV files in the results directory.
+This directory contains #### Command Line Options
+
+- `-i, --input` - Directory containing code*blocks*\* files (required)
+- `-o, --output` - Output directory for tracking results (required)
+- `--log` - Log file path (optional)
+- `--use-similarity` - Enable Phase 2 similarity-based matching
+- `--ngram-threshold` - N-gram similarity threshold (default: 10%)
+- `--lcs-threshold` - LCS similarity threshold (default: 70%)
+
+#### Basic Usage (Phase 1 Only)
+
+```bash
+cd analysis
+docker compose run --rm analysis python method_tracker.py \
+  -i /workspace \
+  -o /app/output/method_tracking
+```
+
+#### Advanced Usage (Phase 1 & 2)
+
+````bash
+cd analysis
+docker compose run --rm analysis python method_tracker.py \
+  -i /workspace \
+  -o /app/output/method_tracking \
+  --use-similarity
+``` for analyzing CSV files in the results directory.
 
 ## Setup
 
@@ -11,7 +37,8 @@ The analysis environment runs in a separate Docker container with Python and dat
 - `csv_line_count_analysis.py` - CSV line count analysis script with logging
 - `unique_clone_analyzer.py` - Code clone pair analysis script with batch processing
 - `pair_diff.py` - Analyze differences in method pairs between snapshots
-- `method_tracker.py` - Track methods across snapshots (exact matching)
+- `method_tracker.py` - Track methods across snapshots (Phase 1 & 2)
+- `similarity_calculator.py` - N-gram and LCS similarity calculation (Phase 2)
 - `test_analyzer.py` - Test script for the clone analyzer
 - `run_analysis.sh` - Legacy script to run CSV line count analysis
 - `run_clone_analysis.sh` - Legacy script to run clone analysis test
@@ -23,9 +50,20 @@ The analysis environment runs in a separate Docker container with Python and dat
 
 ## Usage
 
-### 1. Method Evolution Tracking (NEW)
+### 1. Method Evolution Tracking
 
-Track methods across snapshots using exact matching (file path, method name, signature).
+Track methods across snapshots using Phase 1 (exact matching) and Phase 2 (similarity-based matching).
+
+#### Phase 1: Exact Matching
+- File path + method name + signature matching
+- TokenSequence hash matching (identical implementation)
+
+#### Phase 2: Similarity-Based Matching
+- Renamed methods detection (same file, LCS ≥ 90%)
+- File moved detection (different file, LCS ≥ 90%)
+- Signature changed detection (same file, same method name)
+- Refactoring detection (LCS ≥ 70%)
+- Uses same algorithms as NIL (N-gram 10%, LCS 70%)
 
 #### Requirements
 
@@ -39,7 +77,7 @@ cd analysis
 docker compose run --rm analysis python method_tracker.py \
   -i /workspace \
   -o /app/output/method_tracking
-```
+````
 
 #### Command Line Options
 
@@ -50,9 +88,9 @@ docker compose run --rm analysis python method_tracker.py \
 #### Output Files
 
 - `method_tracking_summary.csv` - Summary statistics per snapshot pair
-  - Columns: snapshot_t, snapshot_t1, exact_matches, added_methods, deleted_methods, total_t, total_t1
+  - Columns: snapshot_t, snapshot_t1, exact_matches, token_hash_matches, renamed, moved, signature_changed, refactored, added_methods, deleted_methods, total_t, total_t1
 - `method_tracking_details.csv` - Detailed change information
-  - Columns: snapshot_t, snapshot_t1, change_type, file_path, method_name, signature, line_range_t, line_range_t1, commit_t, commit_t1
+  - Columns: snapshot_t, snapshot_t1, change_type, file_path, method_name, signature, line_range_t, line_range_t1, commit_t, commit_t1, similarity
 
 #### Example
 
