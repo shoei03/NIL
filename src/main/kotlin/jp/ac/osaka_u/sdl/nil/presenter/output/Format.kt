@@ -1,14 +1,21 @@
 package jp.ac.osaka_u.sdl.nil.presenter.output
 
 import jp.ac.osaka_u.sdl.nil.NILMain
+import jp.ac.osaka_u.sdl.nil.NILMain.Companion.CODE_BLOCK_DIR
 import jp.ac.osaka_u.sdl.nil.NILMain.Companion.CODE_BLOCK_FILE_NAME
 import jp.ac.osaka_u.sdl.nil.entity.CodeBlockInfo
 import java.io.File
 
 abstract class Format {
-    fun convert(outputFileName: String) =
+    fun convert(outputFileName: String, commitHash: String? = null) =
         File(outputFileName).bufferedWriter().use { bw ->
-            val codeBlocks: List<CodeBlockInfo> = File(CODE_BLOCK_FILE_NAME)
+            val codeBlockFileName = if (commitHash != null) {
+                "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}_${commitHash.take(8)}"
+            } else {
+                "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}"
+            }
+            val codeBlockFile = File(codeBlockFileName)
+            val codeBlocks: List<CodeBlockInfo> = codeBlockFile
                 .readLines()
                 .map { CodeBlockInfo.parse(it) }
             File(NILMain.CLONE_PAIR_FILE_NAME).bufferedReader().use { br ->

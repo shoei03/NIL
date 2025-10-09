@@ -18,6 +18,7 @@ import java.io.File
 
 class NILMain(private val config: NILConfig) {
     companion object {
+        const val CODE_BLOCK_DIR = "code_blocks"
         const val CODE_BLOCK_FILE_NAME = "code_blocks"
         const val CLONE_PAIR_FILE_NAME = "clone_pairs"
     }
@@ -75,7 +76,7 @@ class NILMain(private val config: NILConfig) {
         logger.infoEnd((endTime - startTime).toTime())
 
         FormatFactory.create(config.isForBigCloneEval)
-            .convert(config.outputFileName)
+            .convert(config.outputFileName, config.commitHash)
     }
 }
 
