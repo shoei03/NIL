@@ -12,7 +12,8 @@ data class CodeBlockInfo(
     val returnType: String? = null,
     val parameters: List<Parameter>? = null,
     val commitHash: String? = null,
-    val tokenHash: String? = null
+    val tokenHash: String? = null,
+    val tokenSequence: List<Int>? = null
 ) {
     companion object {
         /**
@@ -54,9 +55,32 @@ data class CodeBlockInfo(
                     }
                     val parameters = parseParameters(paramString)
                     
-                    // Get commit hash and token hash (last two fields)
-                    val commitHash = parts[parts.size - 2]
-                    val tokenHash = parts[parts.size - 1]
+                    // Parse token sequence from [token1;token2;...]
+                    // Find the token sequence section (last bracketed section)
+                    val tokenSeqStart = line.lastIndexOf('[')
+                    val tokenSeqEnd = line.lastIndexOf(']')
+                    val tokenSequence = if (tokenSeqStart > paramEnd && tokenSeqEnd > tokenSeqStart) {
+                        val tokenSeqString = line.substring(tokenSeqStart + 1, tokenSeqEnd)
+                        if (tokenSeqString.isNotEmpty()) {
+                            tokenSeqString.split(";").mapNotNull { it.toIntOrNull() }
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                    
+                    // Get commit hash and token hash
+                    // They are between the parameter bracket and token sequence bracket
+                    val afterParams = if (paramEnd >= 0) line.substring(paramEnd + 1) else line
+                    val beforeTokenSeq = if (tokenSeqStart > paramEnd) {
+                        afterParams.substring(0, tokenSeqStart - paramEnd - 1)
+                    } else {
+                        afterParams
+                    }
+                    val hashParts = beforeTokenSeq.split(",").filter { it.isNotEmpty() }
+                    val commitHash = hashParts.getOrNull(hashParts.size - 2)
+                    val tokenHash = hashParts.getOrNull(hashParts.size - 1)
                     
                     CodeBlockInfo(
                         fileName = fileName,
@@ -65,8 +89,9 @@ data class CodeBlockInfo(
                         methodName = methodName.takeIf { it.isNotEmpty() && it != "null" },
                         returnType = returnType.takeIf { it.isNotEmpty() && it != "null" && it != "None" },
                         parameters = parameters,
-                        commitHash = commitHash.takeIf { it.isNotEmpty() && it != "null" && it != "unknown" },
-                        tokenHash = tokenHash.takeIf { it.isNotEmpty() && it != "null" }
+                        commitHash = commitHash?.takeIf { it.isNotEmpty() && it != "null" && it != "unknown" },
+                        tokenHash = tokenHash?.takeIf { it.isNotEmpty() && it != "null" },
+                        tokenSequence = tokenSequence
                     )
                 }
                 // Method format: fileName,startLine,endLine,methodName,returnType,[params]

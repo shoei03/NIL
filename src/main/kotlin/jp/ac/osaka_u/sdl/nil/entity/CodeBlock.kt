@@ -41,7 +41,8 @@ data class CodeBlock(
             val returnTypeStr = returnType?.replace(",", ";") ?: "None"
             val commit = commitHash ?: "unknown"
             val tokenHash = getTokenSequenceHash()
-            "${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}],${commit},${tokenHash}"
+            val tokenSeq = "[${tokenSequence.joinToString(";")}]"
+            "${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}],${commit},${tokenHash},${tokenSeq}"
         } else {
             "${fileName},${startLine},${endLine}"
         }
