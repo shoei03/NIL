@@ -10,6 +10,8 @@ The analysis environment runs in a separate Docker container with Python and dat
 
 - `csv_line_count_analysis.py` - CSV line count analysis script with logging
 - `unique_clone_analyzer.py` - Code clone pair analysis script with batch processing
+- `pair_diff.py` - Analyze differences in method pairs between snapshots
+- `method_tracker.py` - Track methods across snapshots (exact matching)
 - `test_analyzer.py` - Test script for the clone analyzer
 - `run_analysis.sh` - Legacy script to run CSV line count analysis
 - `run_clone_analysis.sh` - Legacy script to run clone analysis test
@@ -21,7 +23,53 @@ The analysis environment runs in a separate Docker container with Python and dat
 
 ## Usage
 
-### 1. Run CSV Line Count Analysis
+### 1. Method Evolution Tracking (NEW)
+
+Track methods across snapshots using exact matching (file path, method name, signature).
+
+#### Requirements
+
+- NIL must be run with `--commit-hash` option to generate `code_blocks_<hash>` files in `code_blocks/` directory
+- Multiple `code_blocks_*` files in the `code_blocks/` subdirectory of the input directory
+
+#### Basic Usage
+
+```bash
+cd analysis
+docker compose run --rm analysis python method_tracker.py \
+  -i /workspace \
+  -o /app/output/method_tracking
+```
+
+#### Command Line Options
+
+- `-i, --input` - Directory containing code*blocks*\* files (required)
+- `-o, --output` - Output directory for tracking results (required)
+- `--log` - Log file path (optional)
+
+#### Output Files
+
+- `method_tracking_summary.csv` - Summary statistics per snapshot pair
+  - Columns: snapshot_t, snapshot_t1, exact_matches, added_methods, deleted_methods, total_t, total_t1
+- `method_tracking_details.csv` - Detailed change information
+  - Columns: snapshot_t, snapshot_t1, change_type, file_path, method_name, signature, line_range_t, line_range_t1, commit_t, commit_t1
+
+#### Example
+
+```bash
+# Run NIL with batch mode to generate code_blocks files
+cd /path/to/NIL
+./scripts/nil.sh /app/Repos/pandas --batch --skip 1000
+
+# Track methods across snapshots
+cd analysis
+docker compose run --rm analysis python method_tracker.py \
+  -i /workspace \
+  -o /app/output/method_tracking \
+  --log /app/logs/method_tracker.log
+```
+
+### 2. Run CSV Line Count Analysis
 
 The CSV line count analysis script supports command-line arguments for flexible usage.
 

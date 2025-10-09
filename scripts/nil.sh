@@ -211,7 +211,7 @@ if [ "$BATCH_MODE" = true ]; then
         echo "📝 結果ファイル: $OUTPUT_FILE"
         
         # NILを実行
-        if docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}" >/dev/null 2>&1; then
+        if docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" -ch "$SHORT_COMMIT" "${NIL_ARGS[@]}" >/dev/null 2>&1; then
             echo "✅ 完了: $SHORT_COMMIT ($(date -r "$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null))"
             SUCCESSFUL_COMMITS+=("$COMMIT_HASH")
         else
@@ -283,8 +283,8 @@ fi
 
 # NILを実行
 if [ -z "$CUSTOM_OUTPUT" ] && [ -n "$COMMIT_HASH" ]; then
-    # コミット指定時は自動生成されたファイル名を使用
-    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}"
+    # コミット指定時は自動生成されたファイル名とコミットハッシュを使用
+    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" -ch "$SHORT_COMMIT" "${NIL_ARGS[@]}"
 else
     # 通常の実行（-o オプションが含まれている場合も含む）
     docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}"
