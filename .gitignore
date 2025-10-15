@@ -15,3 +15,6 @@ result_*.csv
 
 # Ignore target analysis directory
 Repos/*/*
+
+# Python chache files
+__pycache__/
