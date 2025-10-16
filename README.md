@@ -55,6 +55,13 @@ NIL provides scalable large-variance clone detection.
 
 If you execute NIL on 250-MLOC codebase, we recommend `-p` option to 135.
 
+## Documentation
+
+- [Usage Guide](./docs/NIL_USAGE_GUIDE.md) - Detailed usage guide including operation principles, Docker execution, and input/output formats
+- [Docker Guide](./docs/DOCKER_GUIDE.md) - Comprehensive Docker execution guide with examples and troubleshooting
+- [I/O Format](./docs/IO_FORMAT.md) - Detailed specification of input parameters and output formats
+- [Architecture](./docs/ARCHITECTURE.md) - Internal architecture and implementation details
+
 ## Experiments, datasets, and baseline tools
 
 - Please refer to [EXPERIMENTS.md](./EXPERIMENTS.md)
