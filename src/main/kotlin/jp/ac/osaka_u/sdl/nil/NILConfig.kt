@@ -16,6 +16,7 @@ data class NILConfig(
     val isForBigCloneEval: Boolean = false,
     val isForMutationInjectionFramework: Boolean = false,
     val commitHash: String? = null,
+    val commitTimestamp: String? = null,
 )
 
 fun parseArgs(args: Array<String>): NILConfig {
@@ -32,6 +33,7 @@ fun parseArgs(args: Array<String>): NILConfig {
     var isForBigCloneEval = false
     var isForMutationInjectionFramework = false
     var commitHash: String? = null
+    var commitTimestamp: String? = null
 
     val iterator = args.iterator()
     while (iterator.hasNext()) {
@@ -49,6 +51,7 @@ fun parseArgs(args: Array<String>): NILConfig {
             "-bce", "--bigcloneeval" -> isForBigCloneEval = true
             "-mif", "--mutationinjectionframework" -> isForMutationInjectionFramework = true
             "-ch", "--commit-hash" -> commitHash = iterator.next()
+            "-ct", "--commit-timestamp" -> commitTimestamp = iterator.next()
             else -> throw InvalidOptionException("$optionName is invalid option.")
         }
     }
@@ -71,6 +74,7 @@ fun parseArgs(args: Array<String>): NILConfig {
         isForBigCloneEval,
         isForMutationInjectionFramework,
         commitHash,
+        commitTimestamp,
     )
 }
 
@@ -108,6 +112,7 @@ class InvalidOptionException(private val option: String) : RuntimeException() {
             |-bce, --bigcloneeval${'\t'}${'\t'}${'\t'}Output result feasible to BigCloneEval (default: false)
             |-mif, --mutationinjectionframework${'\t'}Output result feasible to MutationInjectionFramework (default: false)
             |-ch, --commit-hash${'\t'}${'\t'}${'\t'}Commit hash for tracking (optional)
+            |-ct, --commit-timestamp${'\t'}${'\t'}Commit timestamp for tracking (optional)
         """.trimMargin()
 }
 

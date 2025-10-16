@@ -15,7 +15,7 @@ import java.io.File
  * all you have to do is extend this class
  * and write methods to collect the source files and code blocks of the language.
  */
-abstract class Preprocess(private val threads: Int, private val commitHash: String? = null) {
+abstract class Preprocess(private val threads: Int, private val commitHash: String? = null, private val commitTimestamp: String? = null) {
 
     fun collectTokenSequences(src: File): List<TokenSequence> {
         // Create code_blocks directory if it doesn't exist
@@ -24,7 +24,9 @@ abstract class Preprocess(private val threads: Int, private val commitHash: Stri
             codeBlockDir.mkdirs()
         }
         
-        val codeBlockFileName = if (commitHash != null) {
+        val codeBlockFileName = if (commitTimestamp != null && commitHash != null) {
+            "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}_${commitTimestamp}_${commitHash.take(8)}"
+        } else if (commitHash != null) {
             "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}_${commitHash.take(8)}"
         } else {
             "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}"

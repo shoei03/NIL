@@ -76,7 +76,7 @@ class NILMain(private val config: NILConfig) {
         logger.infoEnd((endTime - startTime).toTime())
 
         FormatFactory.create(config.isForBigCloneEval)
-            .convert(config.outputFileName, config.commitHash)
+            .convert(config.outputFileName, config.commitHash, config.commitTimestamp)
     }
 }
 

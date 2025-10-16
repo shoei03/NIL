@@ -7,7 +7,7 @@ import jp.ac.osaka_u.sdl.nil.entity.CodeBlock
 import jp.ac.osaka_u.sdl.nil.usecase.preprocess.Preprocess
 import java.io.File
 
-class CPPPreprocess(private val config: NILConfig) : Preprocess(config.threads, config.commitHash) {
+class CPPPreprocess(private val config: NILConfig) : Preprocess(config.threads, config.commitHash, config.commitTimestamp) {
     override fun collectSourceFiles(dir: File): Flowable<File> =
         dir.walk()
             .filter {

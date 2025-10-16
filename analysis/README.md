@@ -1,5 +1,19 @@
 # Analysis Directory
 
+このディレクトリには、NILの結果を分析するためのスクリプトとツールが含まれています。
+
+## 📚 ドキュメント（必読！）
+
+- **[QUICK_START_TRACKING_RESULTS.md](./QUICK_START_TRACKING_RESULTS.md)** ⭐ 
+  - メソッド追跡結果の読み方（3分でわかる）
+  - 実用例とデータ分析のサンプルコード付き
+  
+- **[HOW_TO_READ_TRACKING_RESULTS.md](./HOW_TO_READ_TRACKING_RESULTS.md)**
+  - `method_tracking_details.csv`の詳細な解説
+  - 各カラムと変更タイプの完全ガイド
+
+---
+
 This directory contains #### Command Line Options
 
 - `-i, --input` - Directory containing code*blocks*\* files (required)

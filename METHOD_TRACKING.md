@@ -41,17 +41,22 @@ file,start,end,method,return_type,[params],commit_hash,token_hash,[token_sequenc
 
 ### 2. スナップショット別保存
 
-`-ch, --commit-hash`オプションを使用すると、code_blocks ファイルがスナップショット別に`code_blocks/`ディレクトリに保存されます：
+`-ch, --commit-hash`と`-ct, --commit-timestamp`オプションを使用すると、code_blocks ファイルがスナップショット別に`code_blocks/`ディレクトリに保存されます：
 
 ```bash
 code_blocks/
-  ├── code_blocks_9d008057
-  ├── code_blocks_a56b0056
-  ├── code_blocks_4e375e8e
+  ├── code_blocks_20111010_015605_87a3370b
+  ├── code_blocks_20120209_113131_71b65ab6
+  ├── code_blocks_20130212_043101_13c5d72a
   └── ...
 ```
 
-このディレクトリ構造により、ルートディレクトリが散らからず、スナップショットファイルを整理された状態で管理できます。
+**ファイル名形式**: `code_blocks_<YYYYMMDD_HHMMSS>_<commit_hash>`
+
+- タイムスタンプ: コミット日時（`YYYYMMDD_HHMMSS`形式）
+- コミットハッシュ: 最初の 8 文字
+
+このディレクトリ構造により、ルートディレクトリが散らからず、スナップショットファイルを整理された状態で管理できます。また、ファイル名にタイムスタンプが含まれることで、時系列順のソートが容易になります。
 
 ### 3. Method Tracker（メソッド追跡スクリプト）
 
@@ -76,23 +81,27 @@ code_blocks/
 
 #### 使用方法
 
-````bash
+```bash
 # NILでスナップショットを生成
 ./scripts/nil.sh /app/Repos/pandas -c <commit_hash>
 
 # または、バッチモードで複数のスナップショットを生成
+# （タイムスタンプとコミットハッシュが自動的に付与されます）
 ./scripts/nil.sh /app/Repos/pandas --batch --skip 1000
+```
 
 ### method_tracker.py
 
-`code_blocks/`ディレクトリ内の複数のcode_blocksファイルを使用してメソッド追跡を行います：
+`code_blocks/`ディレクトリ内の複数の code_blocks ファイルを使用してメソッド追跡を行います：
 
 ```bash
 python analysis/method_tracker.py \
   -i code_blocks \
   -o analysis/output/tracking_results \
   --log analysis/logs/tracking.log
-````
+```
+
+**注意**: `method_tracker.py`は新しいファイル名形式（`code_blocks_<timestamp>_<hash>`）と古い形式（`code_blocks_<hash>`）の両方に対応しています。
 
 #### オプション
 

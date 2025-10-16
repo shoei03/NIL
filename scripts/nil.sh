@@ -193,6 +193,10 @@ if [ "$BATCH_MODE" = true ]; then
         echo ""
         echo "🔄 [$((i+1))/${#COMMIT_LIST[@]}] コミット $COMMIT_HASH を処理中..."
         
+        # リポジトリをクリーンな状態にしてからチェックアウト
+        docker compose run --rm nil git -C "$SOURCE_DIR" reset --hard >/dev/null 2>&1
+        docker compose run --rm nil git -C "$SOURCE_DIR" clean -fd >/dev/null 2>&1
+        
         # コミットにチェックアウト
         if ! docker compose run --rm nil git -C "$SOURCE_DIR" checkout "$COMMIT_HASH" >/dev/null 2>&1; then
             echo "❌ コミット $COMMIT_HASH のチェックアウトに失敗"
@@ -211,7 +215,7 @@ if [ "$BATCH_MODE" = true ]; then
         echo "📝 結果ファイル: $OUTPUT_FILE"
         
         # NILを実行
-        if docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" -ch "$SHORT_COMMIT" "${NIL_ARGS[@]}" >/dev/null 2>&1; then
+        if docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" -ch "$SHORT_COMMIT" -ct "$FORMATTED_TIME" "${NIL_ARGS[@]}" >/dev/null 2>&1; then
             echo "✅ 完了: $SHORT_COMMIT ($(date -r "$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null))"
             SUCCESSFUL_COMMITS+=("$COMMIT_HASH")
         else
@@ -256,6 +260,10 @@ if [ -n "$COMMIT_HASH" ]; then
         ORIGINAL_COMMIT=$(docker compose run --rm nil git -C "$SOURCE_DIR" rev-parse HEAD | tr -d '\r')
     fi
     
+    # リポジトリをクリーンな状態にしてからチェックアウト
+    docker compose run --rm nil git -C "$SOURCE_DIR" reset --hard >/dev/null 2>&1
+    docker compose run --rm nil git -C "$SOURCE_DIR" clean -fd >/dev/null 2>&1
+    
     # 指定されたコミットにチェックアウト
     if ! docker compose run --rm nil git -C "$SOURCE_DIR" checkout "$COMMIT_HASH"; then
         echo "❌ コミット $COMMIT_HASH のチェックアウトに失敗しました"
@@ -283,8 +291,8 @@ fi
 
 # NILを実行
 if [ -z "$CUSTOM_OUTPUT" ] && [ -n "$COMMIT_HASH" ]; then
-    # コミット指定時は自動生成されたファイル名とコミットハッシュを使用
-    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" -ch "$SHORT_COMMIT" "${NIL_ARGS[@]}"
+    # コミット指定時は自動生成されたファイル名とコミットハッシュ、タイムスタンプを使用
+    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" -ch "$SHORT_COMMIT" -ct "$FORMATTED_TIME" "${NIL_ARGS[@]}"
 else
     # 通常の実行（-o オプションが含まれている場合も含む）
     docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}"

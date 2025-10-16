@@ -468,8 +468,9 @@ class MethodTracker:
         """
         Track methods across all code_blocks files in the directory.
 
-        Assumes files are named: code_blocks_<commit_hash>
-        Or in code_blocks subdirectory: code_blocks/code_blocks_<commit_hash>
+        Assumes files are named: code_blocks_<timestamp>_<commit_hash>
+        Or in code_blocks subdirectory: code_blocks/code_blocks_<timestamp>_<commit_hash>
+        Legacy format also supported: code_blocks_<commit_hash>
         """
         # Check if code_blocks_dir has a code_blocks subdirectory
         code_blocks_subdir = code_blocks_dir / "code_blocks"
@@ -546,10 +547,26 @@ class MethodTracker:
             for curr_file in tqdm(code_block_files, desc="Tracking methods"):
                 # Parse current snapshot
                 curr_snapshot = self.parse_code_blocks(curr_file)
-                curr_commit = curr_file.name.replace("code_blocks_", "")
+
+                # Extract commit info from filename
+                # Format: code_blocks_<timestamp>_<hash> or code_blocks_<hash> (legacy)
+                filename_parts = curr_file.name.replace("code_blocks_", "").split("_")
+                if len(filename_parts) >= 2:
+                    # New format: timestamp_hash
+                    curr_commit = filename_parts[-1]  # Last part is always hash
+                else:
+                    # Legacy format: just hash
+                    curr_commit = filename_parts[0]
 
                 if prev_snapshot is not None:
-                    prev_commit = prev_file.name.replace("code_blocks_", "")
+                    # Extract commit info from previous file
+                    prev_filename_parts = prev_file.name.replace(
+                        "code_blocks_", ""
+                    ).split("_")
+                    if len(prev_filename_parts) >= 2:
+                        prev_commit = prev_filename_parts[-1]
+                    else:
+                        prev_commit = prev_filename_parts[0]
 
                     # Analyze changes
                     matches, added_ids, deleted_ids = self.analyze_changes(
