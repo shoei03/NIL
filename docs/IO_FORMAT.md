@@ -42,11 +42,12 @@
 
 #### オプションパラメータ - 出力設定
 
-| パラメータ        | 短縮形 | 長い形式                       | デフォルト               | 説明               |
-| ----------------- | ------ | ------------------------------ | ------------------------ | ------------------ |
-| 出力ファイル      | `-o`   | `--output`                     | `result_{n}_{f}_{v}.csv` | 結果ファイルのパス |
-| BigCloneEval 形式 | `-bce` | `--bigcloneeval`               | false                    | BCE 互換形式で出力 |
-| MIF 形式          | `-mif` | `--mutationinjectionframework` | false                    | MIF 互換モード     |
+| パラメータ        | 短縮形 | 長い形式                       | デフォルト | 説明                                              |
+| ----------------- | ------ | ------------------------------ | ---------- | ------------------------------------------------- |
+| 出力ファイル      | `-o`   | `--output`                     | 自動生成   | 結果ファイルのパス（オプション）                  |
+| フルパス出力      |        | `--full-path`                  | false      | フルファイルパス形式で出力（デフォルト: ID 形式） |
+| BigCloneEval 形式 | `-bce` | `--bigcloneeval`               | false      | BCE 互換形式で出力（自動的に--full-path 有効）    |
+| MIF 形式          | `-mif` | `--mutationinjectionframework` | false      | MIF 互換モード                                    |
 
 #### オプションパラメータ - 追跡機能
 
@@ -133,9 +134,72 @@ java -jar NIL-all.jar -s /path/to/kotlin/project -l kt
 
 ## 出力フォーマット
 
-### 標準出力形式
+NIL は**デフォルトで ID 形式**で結果を出力します。これはファイルサイズを大幅に削減するためです。フルパス形式が必要な場合は `--full-path` オプションを使用してください。
 
-デフォルト（`-bce` なし）の出力形式です。
+### 出力ディレクトリ構造
+
+すべての出力は `results/<timestamp>_<hash>/` ディレクトリ配下に保存されます：
+
+```
+NIL/
+└── results/
+    └── 20250116_143022_a1b2c3d4/     # タイムスタンプ_ハッシュ
+        ├── result.csv                # 最終出力（ID形式 or フルパス形式）
+        ├── clone_pairs.csv           # ID形式のクローンペア（常に生成）
+        └── code_blocks.csv           # コードブロック詳細情報
+```
+
+- **タイムスタンプ**: `YYYYMMDD_HHMMSS` 形式（`-ct` オプションで指定可）
+- **ハッシュ**: ソースディレクトリパスから生成された 8 文字（`-ch` オプションで指定可）
+
+### ID 形式（デフォルト）
+
+最もコンパクトな出力形式。**ファイルサイズを 90-95%削減**できます。
+
+#### フォーマット
+
+```csv
+id1,id2,ngram_similarity,lcs_similarity
+```
+
+#### フィールド詳細
+
+| フィールド         | 型           | 説明                                                | 例     |
+| ------------------ | ------------ | --------------------------------------------------- | ------ |
+| `id1`              | Integer      | 1 つ目のクローンの ID（`code_blocks.csv` の行番号） | `0`    |
+| `id2`              | Integer      | 2 つ目のクローンの ID（`code_blocks.csv` の行番号） | `15`   |
+| `ngram_similarity` | Double       | N-gram ベース類似度（%）                            | `85.5` |
+| `lcs_similarity`   | Double/Empty | LCS ベース類似度（%）※                              | `78.2` |
+
+※ LCS 検証が実行された場合のみ出力
+
+#### サンプル出力 (`result.csv`)
+
+```csv
+0,15,85.5,78.2
+2,42,92.3,88.7
+10,33,75.8,
+```
+
+#### 詳細情報の確認方法
+
+ID 形式の結果を人間が読むには、`code_blocks.csv` を参照します：
+
+```bash
+# code_blocks.csv の例（行番号 = ID）
+# ID 0: /project/src/Main.java,10,25,calculateTotal,double,[amount:double;tax:double],abc123,def456,[1;2;3;...]
+# ID 15: /project/src/Helper.java,50,65,calculateSum,double,[values:double],abc123,ghi789,[4;5;6;...]
+```
+
+結果の解釈：
+
+- ID 0 と ID 15 はクローンペア
+- N-gram 類似度: 85.5%
+- LCS 類似度: 78.2%
+
+### フルパス形式（`--full-path`オプション）
+
+従来の標準出力形式。ファイルパスを含む詳細な出力です。
 
 #### フォーマット
 
@@ -236,17 +300,60 @@ lcs_similarity = (120 × 2) / (150 + 180) × 100 = 72.73%
 
 ## 中間ファイル
 
-NIL は実行中に以下の中間ファイルを生成します。
+NIL は実行中に以下のファイルを `results/<timestamp>_<hash>/` ディレクトリ内に生成します。
 
-### clone_pairs ファイル
+### clone_pairs.csv ファイル
 
-**場所**: プロジェクトルート
+**場所**: `results/<timestamp>_<hash>/clone_pairs.csv`
 
 **形式**:
 
 ```csv
 id_A,id_B,ngram_similarity,lcs_similarity
 ```
+
+**説明**:
+
+- TokenSequence の ID ベースで保存
+- 常に生成される（ID 形式のベースファイル）
+- デフォルトでは、このファイルが `result.csv` としてコピーされる
+
+**例**:
+
+```csv
+0,15,85.5,78.2
+2,42,92.3,88.7
+10,33,75.8,
+```
+
+### code_blocks.csv ファイル
+
+**場所**: `results/<timestamp>_<hash>/code_blocks.csv`
+
+**形式**:
+
+```
+id,file_path,start_line,end_line,method_name,return_type,parameters,commit_hash,token_hash,tokens
+```
+
+**説明**:
+
+- 各行番号が TokenSequence の ID に対応
+- コードブロックの詳細情報を保持
+- メソッド情報（名前、戻り値型、パラメータ）を含む
+- トークンハッシュによりメソッドの変更追跡が可能
+
+**例**:
+
+```csv
+/project/src/Main.java,10,25,calculateTotal,double,[amount:double;tax:double],abc123,def456,[1;2;3;4;5;...]
+/project/src/Helper.java,50,65,calculateSum,double,[values:double],abc123,ghi789,[4;5;6;7;8;...]
+/project/src/Utils.java,100,120,formatString,String,[text:String;format:String],abc123,jkl012,[9;10;11;12;...]
+```
+
+### result.csv ファイル
+
+**場所**: `results/<timestamp>_<hash>/result.csv`
 
 **説明**:
 

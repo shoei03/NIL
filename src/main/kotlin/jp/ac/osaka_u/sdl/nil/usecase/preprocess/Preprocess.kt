@@ -2,8 +2,6 @@ package jp.ac.osaka_u.sdl.nil.usecase.preprocess
 
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import jp.ac.osaka_u.sdl.nil.NILMain.Companion.CODE_BLOCK_DIR
-import jp.ac.osaka_u.sdl.nil.NILMain.Companion.CODE_BLOCK_FILE_NAME
 import jp.ac.osaka_u.sdl.nil.entity.CodeBlock
 import jp.ac.osaka_u.sdl.nil.entity.TokenSequence
 import jp.ac.osaka_u.sdl.nil.util.parallelIfSpecified
@@ -17,36 +15,32 @@ import java.io.File
  */
 abstract class Preprocess(private val threads: Int, private val commitHash: String? = null, private val commitTimestamp: String? = null) {
 
-    fun collectTokenSequences(src: File): List<TokenSequence> {
-        // Create code_blocks directory if it doesn't exist
-        val codeBlockDir = File(CODE_BLOCK_DIR)
-        if (!codeBlockDir.exists()) {
-            codeBlockDir.mkdirs()
-        }
+    fun collectTokenSequences(src: File, codeBlockFilePath: String): Pair<List<TokenSequence>, List<String>> {
+        val codeBlockFile = File(codeBlockFilePath)
         
-        val codeBlockFileName = if (commitTimestamp != null && commitHash != null) {
-            "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}_${commitTimestamp}_${commitHash.take(8)}"
-        } else if (commitHash != null) {
-            "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}_${commitHash.take(8)}"
-        } else {
-            "${CODE_BLOCK_DIR}/${CODE_BLOCK_FILE_NAME}"
-        }
+        // Create parent directory if it doesn't exist
+        codeBlockFile.parentFile?.mkdirs()
         
-        val codeBlockFile = File(codeBlockFileName)
+        // List to store token hashes
+        val tokenHashes = mutableListOf<String>()
         
-        return codeBlockFile.bufferedWriter().use { bw ->
+        val tokenSequences = codeBlockFile.bufferedWriter().use { bw ->
             collectSourceFiles(src)
                 .parallelIfSpecified(threads)
                 .runOn(Schedulers.io())
                 .flatMap { collectBlocks(it) }
                 .sequential()
                 .map { codeBlock -> 
-                    // Add commit hash to code block
+                    // Add commit hash to code block if not already set
                     val blockWithCommit = if (commitHash != null && codeBlock.commitHash == null) {
                         codeBlock.copy(commitHash = commitHash)
                     } else {
                         codeBlock
                     }
+                    // Calculate and store token hash
+                    val tokenHash = blockWithCommit.getTokenSequenceHash()
+                    tokenHashes.add(tokenHash)
+                    
                     bw.appendLine(blockWithCommit.toString())
                     blockWithCommit
                 }
@@ -54,6 +48,8 @@ abstract class Preprocess(private val threads: Int, private val commitHash: Stri
                 .toList()
                 .blockingGet()
         }
+        
+        return Pair(tokenSequences, tokenHashes)
     }
 
     protected abstract fun collectSourceFiles(dir: File): Flowable<File>

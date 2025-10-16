@@ -20,29 +20,35 @@ data class CodeBlockInfo(
          * Parse a line from code_blocks file.
          * Supports multiple formats:
          * 
-         * Old format: /path/to/file,10,25
-         * Method format: /path/to/file,10,25,method_name,return_type,[param1:type1;param2:type2]
-         * Extended format: /path/to/file,10,25,method_name,return_type,[params],commit_hash,token_hash
+         * Token hash format: token_hash,/path/to/file,10,25
+         * Token hash with method format: token_hash,/path/to/file,10,25,method_name,return_type,[param1:type1;param2:type2]
+         * Token hash with extended format: token_hash,/path/to/file,10,25,method_name,return_type,[params],commit_hash,[tokens]
          */
         fun parse(line: String): CodeBlockInfo {
             val parts = line.split(",")
             
+            // Check if first part is a token hash (32 hex characters)
+            val hasTokenHash = parts.firstOrNull()?.matches(Regex("[0-9a-f]{32}")) == true
+            
+            // Skip token hash if present
+            val effectiveParts = if (hasTokenHash) parts.drop(1) else parts
+            
             return when {
-                // Old format: fileName,startLine,endLine
-                parts.size == 3 -> {
+                // Basic format: fileName,startLine,endLine
+                effectiveParts.size == 3 -> {
                     CodeBlockInfo(
-                        fileName = parts[0],
-                        startLine = parts[1].toInt(),
-                        endLine = parts[2].toInt()
+                        fileName = effectiveParts[0],
+                        startLine = effectiveParts[1].toInt(),
+                        endLine = effectiveParts[2].toInt()
                     )
                 }
-                // Extended format with commit hash and token hash
-                parts.size >= 8 -> {
-                    val fileName = parts[0]
-                    val startLine = parts[1].toInt()
-                    val endLine = parts[2].toInt()
-                    val methodName = parts[3]
-                    val returnType = parts[4]
+                // Extended format with commit hash and token sequence
+                effectiveParts.size >= 7 -> {
+                    val fileName = effectiveParts[0]
+                    val startLine = effectiveParts[1].toInt()
+                    val endLine = effectiveParts[2].toInt()
+                    val methodName = effectiveParts[3]
+                    val returnType = effectiveParts[4]
                     
                     // Parse parameters from [param1:type1;param2:type2;...]
                     // Find the parameters section between brackets
@@ -70,8 +76,8 @@ data class CodeBlockInfo(
                         null
                     }
                     
-                    // Get commit hash and token hash
-                    // They are between the parameter bracket and token sequence bracket
+                    // Get commit hash
+                    // It is between the parameter bracket and token sequence bracket
                     val afterParams = if (paramEnd >= 0) line.substring(paramEnd + 1) else line
                     val beforeTokenSeq = if (tokenSeqStart > paramEnd) {
                         afterParams.substring(0, tokenSeqStart - paramEnd - 1)
@@ -79,8 +85,7 @@ data class CodeBlockInfo(
                         afterParams
                     }
                     val hashParts = beforeTokenSeq.split(",").filter { it.isNotEmpty() }
-                    val commitHash = hashParts.getOrNull(hashParts.size - 2)
-                    val tokenHash = hashParts.getOrNull(hashParts.size - 1)
+                    val commitHash = hashParts.lastOrNull()
                     
                     CodeBlockInfo(
                         fileName = fileName,
@@ -90,20 +95,20 @@ data class CodeBlockInfo(
                         returnType = returnType.takeIf { it.isNotEmpty() && it != "null" && it != "None" },
                         parameters = parameters,
                         commitHash = commitHash?.takeIf { it.isNotEmpty() && it != "null" && it != "unknown" },
-                        tokenHash = tokenHash?.takeIf { it.isNotEmpty() && it != "null" },
+                        tokenHash = null, // Token hash is in the first column, not stored in CodeBlockInfo
                         tokenSequence = tokenSequence
                     )
                 }
                 // Method format: fileName,startLine,endLine,methodName,returnType,[params]
-                parts.size >= 6 -> {
-                    val fileName = parts[0]
-                    val startLine = parts[1].toInt()
-                    val endLine = parts[2].toInt()
-                    val methodName = parts[3]
-                    val returnType = parts[4]
+                effectiveParts.size >= 6 -> {
+                    val fileName = effectiveParts[0]
+                    val startLine = effectiveParts[1].toInt()
+                    val endLine = effectiveParts[2].toInt()
+                    val methodName = effectiveParts[3]
+                    val returnType = effectiveParts[4]
                     
                     // Parse parameters from [param1:type1;param2:type2;...]
-                    val paramString = parts.drop(5).joinToString(",") // Re-join in case params contain commas
+                    val paramString = effectiveParts.drop(5).joinToString(",") // Re-join in case params contain commas
                     val parameters = parseParameters(paramString)
                     
                     CodeBlockInfo(

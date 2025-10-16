@@ -34,17 +34,17 @@ data class CodeBlock(
     }
 
     override fun toString(): String {
+        val tokenHash = getTokenSequenceHash()
         return if (methodName != null) {
             val paramStr = parameters?.joinToString(";") { 
                 "${it.name.replace(",", ";")}:${it.type.replace(",", ";")}" 
             } ?: ""
             val returnTypeStr = returnType?.replace(",", ";") ?: "None"
             val commit = commitHash ?: "unknown"
-            val tokenHash = getTokenSequenceHash()
             val tokenSeq = "[${tokenSequence.joinToString(";")}]"
-            "${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}],${commit},${tokenHash},${tokenSeq}"
+            "${tokenHash},${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}],${commit},${tokenSeq}"
         } else {
-            "${fileName},${startLine},${endLine}"
+            "${tokenHash},${fileName},${startLine},${endLine}"
         }
     }
 }
