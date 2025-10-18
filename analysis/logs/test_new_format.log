@@ -1,0 +1,25 @@
+2025-10-10 00:37:01 - INFO - Similarity matching enabled: N-gram threshold=10%, LCS threshold=70%
+2025-10-10 00:37:01 - INFO - Input directory: /workspace
+2025-10-10 00:37:01 - INFO - Output directory: /app/output/test_new_format
+2025-10-10 00:37:01 - INFO - Log file: /app/logs/test_new_format.log
+2025-10-10 00:37:01 - INFO - Using code_blocks subdirectory: /workspace/code_blocks
+2025-10-10 00:37:01 - INFO - Found 4 code_blocks files
+2025-10-10 00:37:01 - INFO - code_blocks_20090801_000716_9d008057: 0 methods extracted
+2025-10-10 00:37:01 - INFO - code_blocks_20111010_015605_87a3370b: 1370 methods extracted
+2025-10-10 00:37:01 - INFO - Exact matches: 0
+2025-10-10 00:37:01 - INFO - 9d008057 -> 87a3370b: exact=0, token_hash=0, renamed=0, moved=0, sig_changed=0, refactored=0, added=1370, deleted=0
+2025-10-10 00:37:01 - INFO - code_blocks_20120209_113131_71b65ab6: 1953 methods extracted
+2025-10-10 00:37:01 - INFO - Exact matches: 980
+2025-10-10 00:37:01 - INFO - Token hash matches: 99
+2025-10-10 00:37:01 - INFO - Finding similarity matches: 291 x 874 comparisons
+2025-10-10 00:37:04 - INFO - Found 95 similarity-based matches
+2025-10-10 00:37:04 - INFO - 87a3370b -> 71b65ab6: exact=980, token_hash=99, renamed=8, moved=48, sig_changed=28, refactored=11, added=779, deleted=196
+2025-10-10 00:37:04 - INFO - code_blocks_20130212_043101_13c5d72a: 3154 methods extracted
+2025-10-10 00:37:04 - INFO - Exact matches: 1436
+2025-10-10 00:37:04 - INFO - Token hash matches: 8
+2025-10-10 00:37:04 - INFO - Finding similarity matches: 509 x 1710 comparisons
+2025-10-10 00:37:16 - INFO - Found 162 similarity-based matches
+2025-10-10 00:37:16 - INFO - 71b65ab6 -> 13c5d72a: exact=1436, token_hash=8, renamed=7, moved=30, sig_changed=93, refactored=32, added=1548, deleted=347
+2025-10-10 00:37:16 - INFO - Summary written to /app/output/test_new_format/method_tracking_summary.csv
+2025-10-10 00:37:16 - INFO - Details written to /app/output/test_new_format/method_tracking_details.csv
+2025-10-10 00:37:16 - INFO - Method tracking complete!

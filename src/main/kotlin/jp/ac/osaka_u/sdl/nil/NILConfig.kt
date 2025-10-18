@@ -15,6 +15,9 @@ data class NILConfig(
     val lang: Language = Language.JAVA,
     val isForBigCloneEval: Boolean = false,
     val isForMutationInjectionFramework: Boolean = false,
+    val isFullPathOutput: Boolean = false,
+    val commitHash: String? = null,
+    val commitTimestamp: String? = null,
 )
 
 fun parseArgs(args: Array<String>): NILConfig {
@@ -30,6 +33,9 @@ fun parseArgs(args: Array<String>): NILConfig {
     var lang = Language.JAVA
     var isForBigCloneEval = false
     var isForMutationInjectionFramework = false
+    var isFullPathOutput = false
+    var commitHash: String? = null
+    var commitTimestamp: String? = null
 
     val iterator = args.iterator()
     while (iterator.hasNext()) {
@@ -46,6 +52,9 @@ fun parseArgs(args: Array<String>): NILConfig {
             "-l", "--language" -> lang = iterator.next().toLangOrException()
             "-bce", "--bigcloneeval" -> isForBigCloneEval = true
             "-mif", "--mutationinjectionframework" -> isForMutationInjectionFramework = true
+            "--full-path" -> isFullPathOutput = true
+            "-ch", "--commit-hash" -> commitHash = iterator.next()
+            "-ct", "--commit-timestamp" -> commitTimestamp = iterator.next()
             else -> throw InvalidOptionException("$optionName is invalid option.")
         }
     }
@@ -53,6 +62,9 @@ fun parseArgs(args: Array<String>): NILConfig {
     if (isForBigCloneEval && isForMutationInjectionFramework) {
         throw InvalidOptionException("Cannot specify both -bce and -mif.")
     }
+    
+    // --full-path implies full path output, but -bce also requires full path
+    val fullPathOutput = isFullPathOutput || isForBigCloneEval
 
     return NILConfig(
         src ?: throw InvalidOptionException("-s must be specified."),
@@ -67,6 +79,9 @@ fun parseArgs(args: Array<String>): NILConfig {
         lang,
         isForBigCloneEval,
         isForMutationInjectionFramework,
+        fullPathOutput,
+        commitHash,
+        commitTimestamp,
     )
 }
 
@@ -103,6 +118,9 @@ class InvalidOptionException(private val option: String) : RuntimeException() {
             |-l, --language${'\t'}${'\t'}${'\t'}${'\t'}Target language (default: java)
             |-bce, --bigcloneeval${'\t'}${'\t'}${'\t'}Output result feasible to BigCloneEval (default: false)
             |-mif, --mutationinjectionframework${'\t'}Output result feasible to MutationInjectionFramework (default: false)
+            |--full-path${'\t'}${'\t'}${'\t'}${'\t'}Output result with full file paths instead of IDs (default: false)
+            |-ch, --commit-hash${'\t'}${'\t'}${'\t'}Commit hash for tracking (optional)
+            |-ct, --commit-timestamp${'\t'}${'\t'}Commit timestamp for tracking (optional)
         """.trimMargin()
 }
 

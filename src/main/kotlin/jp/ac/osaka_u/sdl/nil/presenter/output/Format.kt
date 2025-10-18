@@ -1,17 +1,22 @@
 package jp.ac.osaka_u.sdl.nil.presenter.output
 
-import jp.ac.osaka_u.sdl.nil.NILMain
-import jp.ac.osaka_u.sdl.nil.NILMain.Companion.CODE_BLOCK_FILE_NAME
 import jp.ac.osaka_u.sdl.nil.entity.CodeBlockInfo
 import java.io.File
 
 abstract class Format {
-    fun convert(outputFileName: String) =
-        File(outputFileName).bufferedWriter().use { bw ->
-            val codeBlocks: List<CodeBlockInfo> = File(CODE_BLOCK_FILE_NAME)
+    /**
+     * Convert clone pairs to the final result format
+     * @param resultFilePath Path to the result file to be created
+     * @param codeBlockFilePath Path to the code_blocks file for reference
+     * @param clonePairFilePath Path to the clone_pairs file (ID format)
+     */
+    open fun convert(resultFilePath: String, codeBlockFilePath: String, clonePairFilePath: String) {
+        File(resultFilePath).bufferedWriter().use { bw ->
+            val codeBlocks: List<CodeBlockInfo> = File(codeBlockFilePath)
                 .readLines()
                 .map { CodeBlockInfo.parse(it) }
-            File(NILMain.CLONE_PAIR_FILE_NAME).bufferedReader().use { br ->
+                
+            File(clonePairFilePath).bufferedReader().use { br ->
                 br.lines()
                     .map { line ->
                         val parts = line.split(",")
@@ -26,11 +31,22 @@ abstract class Format {
                     .forEach { bw.appendLine(it) }
             }
         }
+    }
 
-    protected abstract fun reformat(
+    protected open fun reformat(
         codeBlock1: CodeBlockInfo, 
         codeBlock2: CodeBlockInfo,
         nGramSimilarity: String?,
         lcsSimilarity: String?
-    ): String
+    ): String {
+        val similarities = buildString {
+            if (nGramSimilarity != null) {
+                append(",").append(nGramSimilarity)
+            }
+            if (lcsSimilarity != null) {
+                append(",").append(lcsSimilarity)
+            }
+        }
+        return "${codeBlock1.toFullString()},${codeBlock2.toFullString()}$similarities"
+    }
 }

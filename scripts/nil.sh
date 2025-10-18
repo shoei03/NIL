@@ -171,13 +171,16 @@ if [ "$BATCH_MODE" = true ]; then
         echo "🔍 ドライラン: 以下のコミットが実行対象です："
         for i in "${!COMMIT_LIST[@]}"; do
             COMMIT_HASH="${COMMIT_LIST[$i]}"
-            echo "  $((i+1)). $COMMIT_HASH"
+            # コミット情報を取得してプレビュー表示
+            COMMIT_INFO=$(docker compose run --rm nil git -C "$SOURCE_DIR" log -1 --format="%h %ai %s" "$COMMIT_HASH" 2>/dev/null | tr -d '\r')
+            echo "  $((i+1)). $COMMIT_INFO"
         done
         exit 0
     fi
     
     # 実際のバッチ実行
     echo "🚀 バッチ実行を開始します..."
+    echo ""
     
     # 現在のブランチ/コミットを記録
     ORIGINAL_BRANCH=$(docker compose run --rm nil git -C "$SOURCE_DIR" branch --show-current 2>/dev/null | tr -d '\r')
@@ -190,8 +193,12 @@ if [ "$BATCH_MODE" = true ]; then
     
     for i in "${!COMMIT_LIST[@]}"; do
         COMMIT_HASH="${COMMIT_LIST[$i]}"
-        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "🔄 [$((i+1))/${#COMMIT_LIST[@]}] コミット $COMMIT_HASH を処理中..."
+        
+        # リポジトリをクリーンな状態にしてからチェックアウト
+        docker compose run --rm nil git -C "$SOURCE_DIR" reset --hard >/dev/null 2>&1
+        docker compose run --rm nil git -C "$SOURCE_DIR" clean -fd >/dev/null 2>&1
         
         # コミットにチェックアウト
         if ! docker compose run --rm nil git -C "$SOURCE_DIR" checkout "$COMMIT_HASH" >/dev/null 2>&1; then
@@ -206,23 +213,30 @@ if [ "$BATCH_MODE" = true ]; then
         FORMATTED_TIME=$(date -r "$COMMIT_TIMESTAMP" "+%Y%m%d_%H%M%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y%m%d_%H%M%S" 2>/dev/null)
         SHORT_COMMIT=${CURRENT_COMMIT:0:8}
         
-        OUTPUT_FILE="./results/results_${FORMATTED_TIME}_${SHORT_COMMIT}.csv"
+        # 最新のNIL仕様では結果は results/<timestamp>_<hash>/ ディレクトリに自動保存される
+        # -ch と -ct オプションでコミット情報を渡す
+        echo "📝 出力ディレクトリ: results/${FORMATTED_TIME}_${SHORT_COMMIT}/"
+        echo "� コミット日時: $(date -r "$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null)"
         
-        echo "📝 結果ファイル: $OUTPUT_FILE"
-        
-        # NILを実行
-        if docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}" >/dev/null 2>&1; then
-            echo "✅ 完了: $SHORT_COMMIT ($(date -r "$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null))"
+        # NILを実行（-o オプションは不要、自動的にディレクトリが作成される）
+        if docker compose run --rm nil java -jar ./build/libs/NIL-all.jar \
+            -s "$SOURCE_DIR" \
+            -l "python" \
+            -ch "$SHORT_COMMIT" \
+            -ct "$FORMATTED_TIME" \
+            "${NIL_ARGS[@]}"; then
+            echo "✅ 完了: $SHORT_COMMIT"
             SUCCESSFUL_COMMITS+=("$COMMIT_HASH")
         else
             echo "❌ 実行失敗: $SHORT_COMMIT"
             FAILED_COMMITS+=("$COMMIT_HASH")
         fi
+        echo ""
     done
     
     # 元のブランチに戻す
     if [ "$RESTORE_ORIGINAL" = true ]; then
-        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "🔄 元のブランチ/コミットに戻しています..."
         if [ -n "$ORIGINAL_BRANCH" ]; then
             docker compose run --rm nil git -C "$SOURCE_DIR" checkout "$ORIGINAL_BRANCH" >/dev/null 2>&1
@@ -235,12 +249,24 @@ if [ "$BATCH_MODE" = true ]; then
     
     # 結果サマリー
     echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "🎉 バッチ実行が完了しました"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "📊 成功: ${#SUCCESSFUL_COMMITS[@]} / ${#COMMIT_LIST[@]} コミット"
     if [ ${#FAILED_COMMITS[@]} -gt 0 ]; then
-        echo "❌ 失敗したコミット: ${FAILED_COMMITS[*]}"
+        echo "❌ 失敗したコミット (${#FAILED_COMMITS[@]}個):"
+        for failed_commit in "${FAILED_COMMITS[@]}"; do
+            echo "   - $failed_commit"
+        done
     fi
+    echo ""
     echo "📁 結果ファイルは ./results/ ディレクトリに保存されました"
+    echo "   各コミットの結果は results/<YYYYMMDD_HHMMSS>_<hash>/ 形式で保存されています"
+    echo ""
+    echo "🔍 結果ファイル構造:"
+    echo "   - result.csv       : クローンペア（ID形式、コンパクト）"
+    echo "   - clone_pairs.csv  : クローンペア（token_hash形式）"
+    echo "   - code_blocks.csv  : コードブロック詳細情報（token_hash付き）"
     
     exit 0
 fi
@@ -255,6 +281,10 @@ if [ -n "$COMMIT_HASH" ]; then
         # detached HEADの場合
         ORIGINAL_COMMIT=$(docker compose run --rm nil git -C "$SOURCE_DIR" rev-parse HEAD | tr -d '\r')
     fi
+    
+    # リポジトリをクリーンな状態にしてからチェックアウト
+    docker compose run --rm nil git -C "$SOURCE_DIR" reset --hard >/dev/null 2>&1
+    docker compose run --rm nil git -C "$SOURCE_DIR" clean -fd >/dev/null 2>&1
     
     # 指定されたコミットにチェックアウト
     if ! docker compose run --rm nil git -C "$SOURCE_DIR" checkout "$COMMIT_HASH"; then
@@ -271,23 +301,25 @@ if [ -n "$COMMIT_HASH" ]; then
     SHORT_COMMIT=${CURRENT_COMMIT:0:8}
     
     echo "✅ チェックアウト完了: $SHORT_COMMIT ($(date -r "$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null))"
-fi
-
-# 出力ファイル名を決定
-if [ -z "$CUSTOM_OUTPUT" ] && [ -n "$COMMIT_HASH" ]; then
-    OUTPUT_FILE="./results/results_${FORMATTED_TIME}_${SHORT_COMMIT}.csv"
-    echo "📝 結果ファイル: $OUTPUT_FILE"
-else
-    OUTPUT_FILE="${CUSTOM_OUTPUT:-./results/results.csv}"
+    echo "📝 出力ディレクトリ: results/${FORMATTED_TIME}_${SHORT_COMMIT}/"
 fi
 
 # NILを実行
-if [ -z "$CUSTOM_OUTPUT" ] && [ -n "$COMMIT_HASH" ]; then
-    # コミット指定時は自動生成されたファイル名を使用
-    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}"
+if [ -n "$COMMIT_HASH" ]; then
+    # コミット指定時はコミットハッシュとタイムスタンプを渡す
+    # 結果は自動的に results/<timestamp>_<hash>/ ディレクトリに保存される
+    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar \
+        -s "$SOURCE_DIR" \
+        -l "python" \
+        -ch "$SHORT_COMMIT" \
+        -ct "$FORMATTED_TIME" \
+        "${NIL_ARGS[@]}"
 else
-    # 通常の実行（-o オプションが含まれている場合も含む）
-    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar -s "$SOURCE_DIR" -l "python" -o "$OUTPUT_FILE" "${NIL_ARGS[@]}"
+    # 通常の実行
+    docker compose run --rm nil java -jar ./build/libs/NIL-all.jar \
+        -s "$SOURCE_DIR" \
+        -l "python" \
+        "${NIL_ARGS[@]}"
 fi
 
 # 元のブランチ/コミットに戻す処理
@@ -305,11 +337,23 @@ elif [ "$RESTORE_ORIGINAL" = false ] && [ -n "$COMMIT_HASH" ]; then
     echo "ℹ️  元のブランチ/コミットには戻していません (--no-restore オプションが指定されました)"
 fi
 
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ NIL クローン検出が完了しました"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ -n "$COMMIT_HASH" ]; then
-    echo "📊 結果ファイル: $OUTPUT_FILE"
+    echo "� 出力ディレクトリ: results/${FORMATTED_TIME}_${SHORT_COMMIT}/"
     echo "🕐 コミット日時: $(date -r "$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$COMMIT_TIMESTAMP" "+%Y-%m-%d %H:%M:%S" 2>/dev/null)"
     echo "🔗 コミットハッシュ: $CURRENT_COMMIT"
+    echo ""
+    echo "� 結果ファイル構造:"
+    echo "   - result.csv       : クローンペア（ID形式、コンパクト）"
+    echo "   - clone_pairs.csv  : クローンペア（token_hash形式）"
+    echo "   - code_blocks.csv  : コードブロック詳細情報（token_hash付き）"
 else
-    echo "📊 結果ファイルを確認してください"
+    echo "📁 結果は ./results/ ディレクトリに保存されました"
+    echo ""
+    echo "最新の結果を確認するには:"
+    echo "  docker compose run --rm nil bash -c 'ls -lt results/ | head -5'"
 fi
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

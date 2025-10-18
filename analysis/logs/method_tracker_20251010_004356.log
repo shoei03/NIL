@@ -1,0 +1,61 @@
+2025-10-10 00:43:56 - INFO - Similarity matching enabled: N-gram threshold=10%, LCS threshold=70%
+2025-10-10 00:43:56 - INFO - Input directory: /workspace
+2025-10-10 00:43:56 - INFO - Output directory: /app/output/phase2_tracking
+2025-10-10 00:43:56 - INFO - Log file: /app/logs/method_tracker_20251010_004356.log
+2025-10-10 00:43:56 - INFO - Using code_blocks subdirectory: /workspace/code_blocks
+2025-10-10 00:43:56 - INFO - Found 10 code_blocks files
+2025-10-10 00:43:56 - INFO - code_blocks_20090801_000716_9d008057: 0 methods extracted
+2025-10-10 00:43:56 - INFO - code_blocks_20111010_015605_87a3370b: 1370 methods extracted
+2025-10-10 00:43:56 - INFO - Exact matches: 0
+2025-10-10 00:43:56 - INFO - 9d008057 -> 87a3370b: exact=0, token_hash=0, renamed=0, moved=0, sig_changed=0, refactored=0, added=1370, deleted=0
+2025-10-10 00:43:56 - INFO - code_blocks_20120209_113131_71b65ab6: 1953 methods extracted
+2025-10-10 00:43:56 - INFO - Exact matches: 980
+2025-10-10 00:43:56 - INFO - Token hash matches: 99
+2025-10-10 00:43:56 - INFO - Finding similarity matches: 291 x 874 comparisons
+2025-10-10 00:43:59 - INFO - Found 95 similarity-based matches
+2025-10-10 00:43:59 - INFO - 87a3370b -> 71b65ab6: exact=980, token_hash=99, renamed=8, moved=48, sig_changed=28, refactored=11, added=779, deleted=196
+2025-10-10 00:43:59 - INFO - code_blocks_20120529_212811_10e3edea: 2445 methods extracted
+2025-10-10 00:43:59 - INFO - Exact matches: 1619
+2025-10-10 00:43:59 - INFO - Token hash matches: 11
+2025-10-10 00:43:59 - INFO - Finding similarity matches: 323 x 815 comparisons
+2025-10-10 00:44:03 - INFO - Found 113 similarity-based matches
+2025-10-10 00:44:03 - INFO - 71b65ab6 -> 10e3edea: exact=1619, token_hash=11, renamed=4, moved=23, sig_changed=64, refactored=22, added=702, deleted=210
+2025-10-10 00:44:03 - INFO - code_blocks_20121101_053615_026bc001: 2835 methods extracted
+2025-10-10 00:44:03 - INFO - Exact matches: 2291
+2025-10-10 00:44:03 - INFO - Token hash matches: 2
+2025-10-10 00:44:03 - INFO - Finding similarity matches: 152 x 542 comparisons
+2025-10-10 00:44:04 - INFO - Found 51 similarity-based matches
+2025-10-10 00:44:04 - INFO - 10e3edea -> 026bc001: exact=2291, token_hash=2, renamed=6, moved=3, sig_changed=39, refactored=3, added=491, deleted=101
+2025-10-10 00:44:04 - INFO - code_blocks_20130212_043101_13c5d72a: 3154 methods extracted
+2025-10-10 00:44:04 - INFO - Exact matches: 2546
+2025-10-10 00:44:04 - INFO - Token hash matches: 0
+2025-10-10 00:44:04 - INFO - Finding similarity matches: 289 x 608 comparisons
+2025-10-10 00:44:07 - INFO - Found 95 similarity-based matches
+2025-10-10 00:44:07 - INFO - 026bc001 -> 13c5d72a: exact=2546, token_hash=0, renamed=9, moved=3, sig_changed=69, refactored=14, added=513, deleted=194
+2025-10-10 00:44:07 - INFO - code_blocks_20130520_021854_68953ed9: 3282 methods extracted
+2025-10-10 00:44:07 - INFO - Exact matches: 2915
+2025-10-10 00:44:07 - INFO - Token hash matches: 0
+2025-10-10 00:44:07 - INFO - Finding similarity matches: 239 x 367 comparisons
+2025-10-10 00:44:08 - INFO - Found 52 similarity-based matches
+2025-10-10 00:44:08 - INFO - 13c5d72a -> 68953ed9: exact=2915, token_hash=0, renamed=3, moved=1, sig_changed=43, refactored=5, added=315, deleted=187
+2025-10-10 00:44:08 - INFO - code_blocks_20130906_121306_ebee2f8e: 4876 methods extracted
+2025-10-10 00:44:08 - INFO - Exact matches: 3099
+2025-10-10 00:44:08 - INFO - Token hash matches: 11
+2025-10-10 00:44:08 - INFO - Finding similarity matches: 172 x 1766 comparisons
+2025-10-10 00:44:13 - INFO - Found 108 similarity-based matches
+2025-10-10 00:44:13 - INFO - 68953ed9 -> ebee2f8e: exact=3099, token_hash=11, renamed=11, moved=25, sig_changed=47, refactored=25, added=1658, deleted=64
+2025-10-10 00:44:13 - INFO - code_blocks_20131225_104438_5e6e590e: 5591 methods extracted
+2025-10-10 00:44:13 - INFO - Exact matches: 4642
+2025-10-10 00:44:13 - INFO - Token hash matches: 5
+2025-10-10 00:44:13 - INFO - Finding similarity matches: 229 x 944 comparisons
+2025-10-10 00:44:16 - INFO - Found 154 similarity-based matches
+2025-10-10 00:44:17 - INFO - ebee2f8e -> 5e6e590e: exact=4642, token_hash=5, renamed=19, moved=32, sig_changed=82, refactored=21, added=790, deleted=75
+2025-10-10 00:44:17 - INFO - code_blocks_20140315_074455_7bb9174e: 5855 methods extracted
+2025-10-10 00:44:17 - INFO - Exact matches: 5345
+2025-10-10 00:44:17 - INFO - Token hash matches: 61
+2025-10-10 00:44:17 - INFO - Finding similarity matches: 185 x 449 comparisons
+2025-10-10 00:44:18 - INFO - Found 103 similarity-based matches
+2025-10-10 00:44:18 - INFO - 5e6e590e -> 7bb9174e: exact=5345, token_hash=61, renamed=5, moved=22, sig_changed=63, refactored=13, added=346, deleted=82
+2025-10-10 00:44:18 - INFO - Summary written to /app/output/phase2_tracking/method_tracking_summary.csv
+2025-10-10 00:44:18 - INFO - Details written to /app/output/phase2_tracking/method_tracking_details.csv
+2025-10-10 00:44:18 - INFO - Method tracking complete!

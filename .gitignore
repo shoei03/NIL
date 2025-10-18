@@ -10,8 +10,11 @@ build
 
 # Execution results
 clone_pairs
-code_blocks
+code_blocks/
 result_*.csv
 
 # Ignore target analysis directory
 Repos/*/*
+
+# Python chache files
+__pycache__/

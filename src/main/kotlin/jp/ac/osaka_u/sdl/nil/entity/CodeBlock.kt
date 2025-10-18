@@ -1,5 +1,7 @@
 package jp.ac.osaka_u.sdl.nil.entity
 
+import java.security.MessageDigest
+
 /**
  * Parameter represents a function parameter with its name and type.
  */
@@ -19,16 +21,30 @@ data class CodeBlock(
     val methodName: String? = null,
     val returnType: String? = null,
     val parameters: List<Parameter>? = null,
+    val commitHash: String? = null,
 ) {
+    /**
+     * Calculate MD5 hash of the token sequence for tracking method evolution
+     */
+    fun getTokenSequenceHash(): String {
+        val content = tokenSequence.joinToString(",")
+        return MessageDigest.getInstance("MD5")
+            .digest(content.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+    }
+
     override fun toString(): String {
+        val tokenHash = getTokenSequenceHash()
         return if (methodName != null) {
             val paramStr = parameters?.joinToString(";") { 
                 "${it.name.replace(",", ";")}:${it.type.replace(",", ";")}" 
             } ?: ""
             val returnTypeStr = returnType?.replace(",", ";") ?: "None"
-            "${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}]"
+            val commit = commitHash ?: "unknown"
+            val tokenSeq = "[${tokenSequence.joinToString(";")}]"
+            "${tokenHash},${fileName},${startLine},${endLine},${methodName},${returnTypeStr},[${paramStr}],${commit},${tokenSeq}"
         } else {
-            "${fileName},${startLine},${endLine}"
+            "${tokenHash},${fileName},${startLine},${endLine}"
         }
     }
 }
