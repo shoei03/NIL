@@ -18,14 +18,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 from similarity_calculator import SimilarityCalculator
-
-# tqdm is optional; provide a fallback if not installed so the script still runs
-try:
-    from tqdm import tqdm  # type: ignore
-except Exception:
-
-    def tqdm(iterable, **kwargs):
-        return iterable
+from tqdm import tqdm
 
 
 @dataclass(frozen=True)
@@ -422,23 +415,30 @@ class MethodTracker:
 
         return all_matches, added_ids, deleted_ids
 
-    def track_methods(self, code_blocks_dir: Path, output_dir: Path) -> None:
+    def track_methods(
+        self,
+        code_blocks_dir: Path,
+        output_dir: Path,
+        code_block_filename: str = "code_blocks.csv",
+        summary_filename: str = "method_tracking_summary.csv",
+        details_filename: str = "method_tracking_details.csv",
+    ) -> None:
         snapshot_dirs = sorted(
             [
                 d
                 for d in code_blocks_dir.iterdir()
-                if d.is_dir() and (d / "code_blocks.csv").exists()
+                if d.is_dir() and (d / code_block_filename).exists()
             ]
         )
 
-        code_block_files = [d / "code_blocks.csv" for d in snapshot_dirs]
+        code_block_files = [d / code_block_filename for d in snapshot_dirs]
         if code_block_files:
             self.logger.info(
-                f"Found {len(code_block_files)} snapshot directories (new format)"
+                f"Found {len(code_block_files)} snapshot directories (new format) using file '{code_block_filename}'"
             )
         else:
             self.logger.warning(
-                f"No snapshot directories with code_blocks.csv found in {code_blocks_dir}"
+                f"No snapshot directories with {code_block_filename} found in {code_blocks_dir}"
             )
 
         if len(code_block_files) < 2:
@@ -451,8 +451,8 @@ class MethodTracker:
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        summary_path = output_dir / "method_tracking_summary.csv"
-        details_path = output_dir / "method_tracking_details.csv"
+        summary_path = output_dir / summary_filename
+        details_path = output_dir / details_filename
 
         with (
             open(summary_path, "w", newline="", encoding="utf-8") as summary_f,
@@ -501,6 +501,9 @@ class MethodTracker:
                     curr_commit = parts[2]
                 else:
                     curr_commit = dir_name
+                    self.logger.warning(
+                        f"Unexpected snapshot dir name format: {dir_name}"
+                    )
 
                 if prev_snapshot is not None:
                     prev_dir_name = prev_file.parent.name
@@ -509,6 +512,9 @@ class MethodTracker:
                         prev_commit = prev_parts[2]
                     else:
                         prev_commit = prev_dir_name
+                        self.logger.warning(
+                            f"Unexpected snapshot dir name format: {prev_dir_name}"
+                        )
 
                     matches, added_ids, deleted_ids = self.analyze_changes(
                         prev_snapshot, curr_snapshot
@@ -600,17 +606,35 @@ def main() -> None:
     )
     parser.add_argument(
         "-i",
-        "--input",
+        "--input-dir",
         type=Path,
         required=True,
         help="Directory containing snapshot subdirs with code_blocks.csv",
     )
     parser.add_argument(
         "-o",
-        "--output",
+        "--output-dir",
         type=Path,
         required=True,
         help="Output directory for tracking results",
+    )
+    parser.add_argument(
+        "--input-file",
+        type=str,
+        default="code_blocks.csv",
+        help="Filename of code blocks CSV inside each snapshot dir (default: code_blocks.csv)",
+    )
+    parser.add_argument(
+        "--output-file-summary",
+        type=str,
+        default="method_tracking_summary.csv",
+        help="Output CSV filename for method tracking summary (default: method_tracking_summary.csv)",
+    )
+    parser.add_argument(
+        "--output-file-details",
+        type=str,
+        default="method_tracking_details.csv",
+        help="Output CSV filename for method tracking details (default: method_tracking_details.csv)",
     )
     parser.add_argument("--log", type=Path, help="Log file path (optional)")
     parser.add_argument(
@@ -633,30 +657,24 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # Normalize thresholds to 0..1 if user passed percents
-    def norm_arg(v: float) -> float:
-        try:
-            fv = float(v)
-        except Exception:
-            return 0.0
-        if fv > 1.0:
-            return fv / 100.0
-        return fv
-
-    ngram_thresh = norm_arg(args.ngram_threshold)
-    lcs_thresh = norm_arg(args.lcs_threshold)
-
+    # `MethodTracker` normalizes thresholds internally, so pass CLI values directly
     tracker = MethodTracker(
         log_file=args.log,
         use_similarity=args.use_similarity,
-        ngram_threshold=ngram_thresh,
-        lcs_threshold=lcs_thresh,
+        ngram_threshold=args.ngram_threshold,
+        lcs_threshold=args.lcs_threshold,
     )
-    tracker.logger.info(f"Input directory: {args.input}")
-    tracker.logger.info(f"Output directory: {args.output}")
+    tracker.logger.info(f"Input directory: {args.input_dir}")
+    tracker.logger.info(f"Output directory: {args.output_dir}")
     tracker.logger.info(f"Log file: {tracker.log_file}")
 
-    tracker.track_methods(args.input, args.output)
+    tracker.track_methods(
+        args.input_dir,
+        args.output_dir,
+        code_block_filename=args.input_file,
+        summary_filename=args.output_file_summary,
+        details_filename=args.output_file_details,
+    )
 
 
 if __name__ == "__main__":
