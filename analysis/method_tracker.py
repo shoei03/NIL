@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Method Evolution Tracker (rewritten)
+Method Evolution Tracker (rewritten with split output)
 
 Features / improvements over previous version:
 - Prevent duplicate logger handlers when creating multiple trackers in the same process
 - Robust token_sequence parsing (ignore empty/non-integer tokens)
 - Normalize similarity scores returned by SimilarityCalculator (support 0..1 and 0..100)
 - CLI thresholds accepted as percentages or fractions but normalized internally
+- Split output: each pair comparison saves to separate directory with method_tracing.csv
 """
 
 import argparse
@@ -418,11 +419,10 @@ class MethodTracker:
     def track_methods(
         self,
         code_blocks_dir: Path,
-        output_dir: Path,
+        output_base_dir: Path,
         code_block_filename: str = "code_blocks.csv",
-        summary_filename: str = "method_tracking_summary.csv",
-        details_filename: str = "method_tracking_details.csv",
     ) -> None:
+        """Track methods across snapshots and save each pair comparison to separate directory."""
         # スナップショットディレクトリの収集
         snapshot_dirs = sorted(
             d for d in code_blocks_dir.iterdir()
@@ -438,25 +438,20 @@ class MethodTracker:
             return
         
         self.logger.info(f"Processing {len(code_block_files)} code_blocks files")
-        output_dir.mkdir(parents=True, exist_ok=True)
         
-        # CSVライターの準備
-        with (
-            open(output_dir / summary_filename, "w", newline="", encoding="utf-8") as summary_f,
-            open(output_dir / details_filename, "w", newline="", encoding="utf-8") as details_f,
-        ):
+        # 出力ディレクトリを作成
+        output_base_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 全体のサマリーファイルを準備
+        summary_file = output_base_dir / "method_tracking_summary.csv"
+        with open(summary_file, "w", newline="", encoding="utf-8") as summary_f:
             summary_writer = csv.writer(summary_f)
-            details_writer = csv.writer(details_f)
             
-            # ヘッダー書き込み
+            # サマリーヘッダー
             summary_writer.writerow([
                 "snapshot_t", "snapshot_t1", "exact_matches", "token_hash_matches",
                 "renamed", "moved", "signature_changed", "refactored",
                 "added_methods", "deleted_methods", "total_t", "total_t1"
-            ])
-            details_writer.writerow([
-                "snapshot_t", "snapshot_t1", "change_type",
-                "method_t", "method_t1", "similarity"
             ])
             
             # スナップショット間の比較
@@ -468,37 +463,52 @@ class MethodTracker:
                 prev_snapshot = self.parse_code_blocks(prev_file)
                 curr_snapshot = self.parse_code_blocks(curr_file)
                 
-                prev_commit = self._extract_commit(prev_file.parent.name)
-                curr_commit = self._extract_commit(curr_file.parent.name)
+                # ディレクトリ名から情報を抽出
+                prev_dir_name = prev_file.parent.name
+                curr_dir_name = curr_file.parent.name
                 
-                self._write_comparison(
-                    summary_writer, details_writer,
-                    prev_snapshot, curr_snapshot,
-                    prev_commit, curr_commit
+                # 出力ディレクトリ名を作成: YYYYMMDD_HHMMSS_commit_to_YYYYMMDD_HHMMSS_commit
+                output_dir_name = f"{prev_dir_name}_to_{curr_dir_name}"
+                output_dir = output_base_dir / output_dir_name
+                output_dir.mkdir(parents=True, exist_ok=True)
+                
+                # method_tracing.csvに書き込み + サマリー情報を取得
+                match_counts, added_count, deleted_count = self._write_pair_comparison(
+                    output_dir / "method_tracing.csv",
+                    prev_snapshot,
+                    curr_snapshot,
+                    prev_dir_name,
+                    curr_dir_name
                 )
+                
+                # サマリー行を追加
+                summary_writer.writerow([
+                    prev_dir_name, curr_dir_name,
+                    match_counts["exact"], match_counts["token_hash"],
+                    match_counts["renamed"], match_counts["moved"],
+                    match_counts["signature_changed"], match_counts["refactored"],
+                    added_count, deleted_count,
+                    len(prev_snapshot), len(curr_snapshot)
+                ])
+                
+                self.logger.info(f"Written: {output_dir / 'method_tracing.csv'}")
         
-        self.logger.info(f"Summary written to {output_dir / summary_filename}")
-        self.logger.info(f"Details written to {output_dir / details_filename}")
+        self.logger.info(f"Summary written to {summary_file}")
         self.logger.info("Method tracking complete!")
 
-    def _extract_commit(self, dir_name: str) -> str:
-        """ディレクトリ名からコミットハッシュを抽出"""
-        parts = dir_name.split("_")
-        if len(parts) >= 3:
-            return parts[2]
-        self.logger.warning(f"Unexpected snapshot dir name format: {dir_name}")
-        return dir_name
-
-    def _write_comparison(
+    def _write_pair_comparison(
         self,
-        summary_writer,
-        details_writer,
-        prev_snapshot,
-        curr_snapshot,
-        prev_commit: str,
-        curr_commit: str,
-    ) -> None:
-        """2つのスナップショット間の変更を分析して書き込む"""
+        output_file: Path,
+        prev_snapshot: Dict[str, MethodInfo],
+        curr_snapshot: Dict[str, MethodInfo],
+        prev_label: str,
+        curr_label: str,
+    ) -> Tuple[Dict[str, int], int, int]:
+        """2つのスナップショット間の変更を分析してCSVに書き込む
+        
+        Returns:
+            Tuple[Dict[str, int], int, int]: (match_counts, added_count, deleted_count)
+        """
         matches, added_ids, deleted_ids = self.analyze_changes(prev_snapshot, curr_snapshot)
         
         # マッチタイプのカウント
@@ -506,63 +516,75 @@ class MethodTracker:
         for match in matches:
             match_counts[match.match_type] += 1
         
-        # サマリー書き込み
-        summary_writer.writerow([
-            prev_commit, curr_commit,
-            match_counts["exact"], match_counts["token_hash"],
-            match_counts["renamed"], match_counts["moved"],
-            match_counts["signature_changed"], match_counts["refactored"],
-            len(added_ids), len(deleted_ids),
-            len(prev_snapshot), len(curr_snapshot)
-        ])
-        
-        # 詳細書き込み
-        for match in matches:
-            details_writer.writerow([
-                prev_commit, curr_commit, match.match_type,
-                getattr(match.method_t, "token_hash", ""),
-                getattr(match.method_t1, "token_hash", ""),
-                f"{match.similarity:.3f}"
+        # CSVに書き込み
+        with open(output_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            
+            # ヘッダー
+            writer.writerow([
+                "change_type",
+                "method_t_token_hash",
+                "method_t1_token_hash",
+                "similarity"
             ])
-        
-        for method_id in added_ids:
-            details_writer.writerow([
-                prev_commit, curr_commit, "added", "",
-                getattr(curr_snapshot[method_id], "token_hash", ""), ""
-            ])
-        
-        for method_id in deleted_ids:
-            details_writer.writerow([
-                prev_commit, curr_commit, "deleted",
-                getattr(prev_snapshot[method_id], "token_hash", ""), "", ""
-            ])
+            
+            # マッチしたメソッド
+            for match in matches:
+                writer.writerow([
+                    match.match_type,
+                    match.method_t.token_hash,
+                    match.method_t1.token_hash,
+                    f"{match.similarity:.3f}"
+                ])
+            
+            # 追加されたメソッド
+            for method_id in added_ids:
+                method = curr_snapshot[method_id]
+                writer.writerow([
+                    "added",
+                    "",
+                    method.token_hash,
+                    ""
+                ])
+            
+            # 削除されたメソッド
+            for method_id in deleted_ids:
+                method = prev_snapshot[method_id]
+                writer.writerow([
+                    "deleted",
+                    method.token_hash,
+                    "",
+                    ""
+                ])
         
         self.logger.info(
-            f"{prev_commit} -> {curr_commit}: "
+            f"{prev_label} -> {curr_label}: "
             f"exact={match_counts['exact']}, token_hash={match_counts['token_hash']}, "
             f"renamed={match_counts['renamed']}, moved={match_counts['moved']}, "
             f"sig_changed={match_counts['signature_changed']}, refactored={match_counts['refactored']}, "
             f"added={len(added_ids)}, deleted={len(deleted_ids)}"
         )
+        
+        return match_counts, len(added_ids), len(deleted_ids)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Track methods across code_blocks snapshots (Phase 1 & 2)"
+        description="Track methods across code_blocks snapshots (Phase 1 & 2) with split output"
     )
     parser.add_argument(
         "-i",
         "--input-dir",
         type=Path,
-        required=True,
-        help="Directory containing snapshot subdirs with code_blocks.csv",
+        default=Path("/workspace/results/"),
+        help="Directory containing snapshot subdirs with code_blocks.csv (default: /workspace/results/)",
     )
     parser.add_argument(
         "-o",
         "--output-dir",
         type=Path,
-        required=True,
-        help="Output directory for tracking results",
+        default=Path("/app/output/pair_diff_with_lists"),
+        help="Base output directory (will create subdirs for each pair comparison) (default: /app/output/pair_diff_with_lists)",
     )
     parser.add_argument(
         "--input-file",
@@ -570,56 +592,45 @@ def main() -> None:
         default="code_blocks.csv",
         help="Filename of code blocks CSV inside each snapshot dir (default: code_blocks.csv)",
     )
-    parser.add_argument(
-        "--output-file-summary",
-        type=str,
-        default="method_tracking_summary.csv",
-        help="Output CSV filename for method tracking summary (default: method_tracking_summary.csv)",
-    )
-    parser.add_argument(
-        "--output-file-details",
-        type=str,
-        default="method_tracking_details.csv",
-        help="Output CSV filename for method tracking details (default: method_tracking_details.csv)",
-    )
     parser.add_argument("--log", type=Path, help="Log file path (optional)")
     parser.add_argument(
-        "--use-similarity",
+        "--no-similarity",
         action="store_true",
-        help="Enable Phase 2 similarity-based matching (N-gram and LCS)",
+        help="Disable Phase 2 similarity-based matching (similarity is enabled by default)",
     )
     parser.add_argument(
         "--ngram-threshold",
         type=float,
         default=10.0,
-        help="N-gram similarity threshold (percent or fraction). e.g. 10 or 0.1",
+        help="N-gram similarity threshold (percent or fraction) (default: 10.0)",
     )
     parser.add_argument(
         "--lcs-threshold",
         type=float,
         default=70.0,
-        help="LCS similarity threshold (percent or fraction). e.g. 70 or 0.7",
+        help="LCS similarity threshold (percent or fraction) (default: 70.0)",
     )
 
     args = parser.parse_args()
 
+    # Similarity is enabled by default, unless --no-similarity is specified
+    use_similarity = not args.no_similarity
+
     # `MethodTracker` normalizes thresholds internally, so pass CLI values directly
     tracker = MethodTracker(
         log_file=args.log,
-        use_similarity=args.use_similarity,
+        use_similarity=use_similarity,
         ngram_threshold=args.ngram_threshold,
         lcs_threshold=args.lcs_threshold,
     )
     tracker.logger.info(f"Input directory: {args.input_dir}")
-    tracker.logger.info(f"Output directory: {args.output_dir}")
+    tracker.logger.info(f"Output base directory: {args.output_dir}")
     tracker.logger.info(f"Log file: {tracker.log_file}")
 
     tracker.track_methods(
         args.input_dir,
         args.output_dir,
         code_block_filename=args.input_file,
-        summary_filename=args.output_file_summary,
-        details_filename=args.output_file_details,
     )
 
 
