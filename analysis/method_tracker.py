@@ -423,181 +423,127 @@ class MethodTracker:
         summary_filename: str = "method_tracking_summary.csv",
         details_filename: str = "method_tracking_details.csv",
     ) -> None:
+        # スナップショットディレクトリの収集
         snapshot_dirs = sorted(
-            [
-                d
-                for d in code_blocks_dir.iterdir()
-                if d.is_dir() and (d / code_block_filename).exists()
-            ]
+            d for d in code_blocks_dir.iterdir()
+            if d.is_dir() and (d / code_block_filename).exists()
         )
-
+        
         code_block_files = [d / code_block_filename for d in snapshot_dirs]
-        if code_block_files:
-            self.logger.info(
-                f"Found {len(code_block_files)} snapshot directories (new format) using file '{code_block_filename}'"
-            )
-        else:
-            self.logger.warning(
-                f"No snapshot directories with {code_block_filename} found in {code_blocks_dir}"
-            )
-
+        
         if len(code_block_files) < 2:
             self.logger.warning(
                 f"Need at least 2 code_blocks files to track methods (found {len(code_block_files)})"
             )
             return
-
+        
         self.logger.info(f"Processing {len(code_block_files)} code_blocks files")
-
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        summary_path = output_dir / summary_filename
-        details_path = output_dir / details_filename
-
+        
+        # CSVライターの準備
         with (
-            open(summary_path, "w", newline="", encoding="utf-8") as summary_f,
-            open(details_path, "w", newline="", encoding="utf-8") as details_f,
+            open(output_dir / summary_filename, "w", newline="", encoding="utf-8") as summary_f,
+            open(output_dir / details_filename, "w", newline="", encoding="utf-8") as details_f,
         ):
             summary_writer = csv.writer(summary_f)
             details_writer = csv.writer(details_f)
-
-            summary_writer.writerow(
-                [
-                    "snapshot_t",
-                    "snapshot_t1",
-                    "exact_matches",
-                    "token_hash_matches",
-                    "renamed",
-                    "moved",
-                    "signature_changed",
-                    "refactored",
-                    "added_methods",
-                    "deleted_methods",
-                    "total_t",
-                    "total_t1",
-                ]
-            )
-
-            details_writer.writerow(
-                [
-                    "snapshot_t",
-                    "snapshot_t1",
-                    "change_type",
-                    "method_t",
-                    "method_t1",
-                    "similarity",
-                ]
-            )
-
-            prev_file = None
-            prev_snapshot = None
-
-            for curr_file in tqdm(code_block_files, desc="Tracking methods"):
+            
+            # ヘッダー書き込み
+            summary_writer.writerow([
+                "snapshot_t", "snapshot_t1", "exact_matches", "token_hash_matches",
+                "renamed", "moved", "signature_changed", "refactored",
+                "added_methods", "deleted_methods", "total_t", "total_t1"
+            ])
+            details_writer.writerow([
+                "snapshot_t", "snapshot_t1", "change_type",
+                "method_t", "method_t1", "similarity"
+            ])
+            
+            # スナップショット間の比較
+            for prev_file, curr_file in tqdm(
+                zip(code_block_files, code_block_files[1:]),
+                total=len(code_block_files) - 1,
+                desc="Tracking methods"
+            ):
+                prev_snapshot = self.parse_code_blocks(prev_file)
                 curr_snapshot = self.parse_code_blocks(curr_file)
-
-                dir_name = curr_file.parent.name
-                parts = dir_name.split("_")
-                if len(parts) >= 3:
-                    curr_commit = parts[2]
-                else:
-                    curr_commit = dir_name
-                    self.logger.warning(
-                        f"Unexpected snapshot dir name format: {dir_name}"
-                    )
-
-                if prev_snapshot is not None:
-                    prev_dir_name = prev_file.parent.name
-                    prev_parts = prev_dir_name.split("_")
-                    if len(prev_parts) >= 3:
-                        prev_commit = prev_parts[2]
-                    else:
-                        prev_commit = prev_dir_name
-                        self.logger.warning(
-                            f"Unexpected snapshot dir name format: {prev_dir_name}"
-                        )
-
-                    matches, added_ids, deleted_ids = self.analyze_changes(
-                        prev_snapshot, curr_snapshot
-                    )
-
-                    match_counts = {
-                        "exact": 0,
-                        "token_hash": 0,
-                        "renamed": 0,
-                        "moved": 0,
-                        "signature_changed": 0,
-                        "refactored": 0,
-                    }
-                    for match in matches:
-                        match_counts[match.match_type] = (
-                            match_counts.get(match.match_type, 0) + 1
-                        )
-
-                    summary_writer.writerow(
-                        [
-                            prev_commit,
-                            curr_commit,
-                            match_counts["exact"],
-                            match_counts["token_hash"],
-                            match_counts["renamed"],
-                            match_counts["moved"],
-                            match_counts["signature_changed"],
-                            match_counts["refactored"],
-                            len(added_ids),
-                            len(deleted_ids),
-                            len(prev_snapshot),
-                            len(curr_snapshot),
-                        ]
-                    )
-
-                    for match in matches:
-                        details_writer.writerow(
-                            [
-                                prev_commit,
-                                curr_commit,
-                                match.match_type,
-                                getattr(match.method_t, "token_hash", ""),
-                                getattr(match.method_t1, "token_hash", ""),
-                                f"{match.similarity:.3f}",
-                            ]
-                        )
-
-                    for method_id in added_ids:
-                        method = curr_snapshot[method_id]
-                        details_writer.writerow(
-                            [
-                                prev_commit,
-                                curr_commit,
-                                "added",
-                                "",
-                                getattr(method, "token_hash", ""),
-                                "",
-                            ]
-                        )
-
-                    for method_id in deleted_ids:
-                        method = prev_snapshot[method_id]
-                        details_writer.writerow(
-                            [
-                                prev_commit,
-                                curr_commit,
-                                "deleted",
-                                getattr(method, "token_hash", ""),
-                                "",
-                                "",
-                            ]
-                        )
-
-                    self.logger.info(
-                        f"{prev_commit} -> {curr_commit}: exact={match_counts['exact']}, token_hash={match_counts['token_hash']}, renamed={match_counts['renamed']}, moved={match_counts['moved']}, sig_changed={match_counts['signature_changed']}, refactored={match_counts['refactored']}, added={len(added_ids)}, deleted={len(deleted_ids)}"
-                    )
-
-                prev_file = curr_file
-                prev_snapshot = curr_snapshot
-
-        self.logger.info(f"Summary written to {summary_path}")
-        self.logger.info(f"Details written to {details_path}")
+                
+                prev_commit = self._extract_commit(prev_file.parent.name)
+                curr_commit = self._extract_commit(curr_file.parent.name)
+                
+                self._write_comparison(
+                    summary_writer, details_writer,
+                    prev_snapshot, curr_snapshot,
+                    prev_commit, curr_commit
+                )
+        
+        self.logger.info(f"Summary written to {output_dir / summary_filename}")
+        self.logger.info(f"Details written to {output_dir / details_filename}")
         self.logger.info("Method tracking complete!")
+
+    def _extract_commit(self, dir_name: str) -> str:
+        """ディレクトリ名からコミットハッシュを抽出"""
+        parts = dir_name.split("_")
+        if len(parts) >= 3:
+            return parts[2]
+        self.logger.warning(f"Unexpected snapshot dir name format: {dir_name}")
+        return dir_name
+
+    def _write_comparison(
+        self,
+        summary_writer,
+        details_writer,
+        prev_snapshot,
+        curr_snapshot,
+        prev_commit: str,
+        curr_commit: str,
+    ) -> None:
+        """2つのスナップショット間の変更を分析して書き込む"""
+        matches, added_ids, deleted_ids = self.analyze_changes(prev_snapshot, curr_snapshot)
+        
+        # マッチタイプのカウント
+        match_counts = {t: 0 for t in ["exact", "token_hash", "renamed", "moved", "signature_changed", "refactored"]}
+        for match in matches:
+            match_counts[match.match_type] += 1
+        
+        # サマリー書き込み
+        summary_writer.writerow([
+            prev_commit, curr_commit,
+            match_counts["exact"], match_counts["token_hash"],
+            match_counts["renamed"], match_counts["moved"],
+            match_counts["signature_changed"], match_counts["refactored"],
+            len(added_ids), len(deleted_ids),
+            len(prev_snapshot), len(curr_snapshot)
+        ])
+        
+        # 詳細書き込み
+        for match in matches:
+            details_writer.writerow([
+                prev_commit, curr_commit, match.match_type,
+                getattr(match.method_t, "token_hash", ""),
+                getattr(match.method_t1, "token_hash", ""),
+                f"{match.similarity:.3f}"
+            ])
+        
+        for method_id in added_ids:
+            details_writer.writerow([
+                prev_commit, curr_commit, "added", "",
+                getattr(curr_snapshot[method_id], "token_hash", ""), ""
+            ])
+        
+        for method_id in deleted_ids:
+            details_writer.writerow([
+                prev_commit, curr_commit, "deleted",
+                getattr(prev_snapshot[method_id], "token_hash", ""), "", ""
+            ])
+        
+        self.logger.info(
+            f"{prev_commit} -> {curr_commit}: "
+            f"exact={match_counts['exact']}, token_hash={match_counts['token_hash']}, "
+            f"renamed={match_counts['renamed']}, moved={match_counts['moved']}, "
+            f"sig_changed={match_counts['signature_changed']}, refactored={match_counts['refactored']}, "
+            f"added={len(added_ids)}, deleted={len(deleted_ids)}"
+        )
 
 
 def main() -> None:
