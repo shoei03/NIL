@@ -300,7 +300,6 @@ class MethodTracker:
             return []
 
         matches: List[MethodMatch] = []
-        matched_t: Set[str] = set()
         matched_t1: Set[str] = set()
 
         methods_t = [
@@ -314,28 +313,62 @@ class MethodTracker:
             if m.token_sequence and len(m.token_sequence) > 0
         ]
 
+        if not methods_t or not methods_t1:
+            return []
+
         self.logger.info(
             f"Finding similarity matches: {len(methods_t)} x {len(methods_t1)} comparisons"
         )
 
-        for method_id_t, method_t in methods_t:
-            if method_id_t in matched_t:
-                continue
+        # 候補を絞り込むためのインデックス構築
+        # ファイルパス別、メソッド名別にグルーピング
+        t1_by_file: Dict[str, List[Tuple[str, MethodInfo]]] = {}
+        t1_by_method: Dict[str, List[Tuple[str, MethodInfo]]] = {}
+        
+        for method_id, method in methods_t1:
+            t1_by_file.setdefault(method.file_path, []).append((method_id, method))
+            t1_by_method.setdefault(method.method_name, []).append((method_id, method))
 
+        # 各method_tに対して候補を絞り込んで比較
+        for method_id_t, method_t in tqdm(methods_t, desc="Similarity matching", leave=False):
             best_match = None
             best_lcs_sim = 0.0
 
-            for method_id_t1, method_t1 in methods_t1:
-                if method_id_t1 in matched_t1:
-                    continue
+            # 候補を絞り込む: 同じファイルまたは同じメソッド名のものを優先
+            # dictを使ってmethod_idで重複排除
+            candidates: Dict[str, MethodInfo] = {}
+            
+            # 同じファイル内のメソッドを候補に追加
+            if method_t.file_path in t1_by_file:
+                for cid, cm in t1_by_file[method_t.file_path]:
+                    if cid not in matched_t1:
+                        candidates[cid] = cm
+            
+            # 同じメソッド名のものを候補に追加
+            if method_t.method_name in t1_by_method:
+                for cid, cm in t1_by_method[method_t.method_name]:
+                    if cid not in matched_t1:
+                        candidates[cid] = cm
+            
+            # 候補が少ない場合は全体を対象にする（ただし最大100件まで）
+            if len(candidates) < 10:
+                for cid, cm in methods_t1:
+                    if cid not in matched_t1 and cid not in candidates:
+                        candidates[cid] = cm
+                        if len(candidates) >= 100:
+                            break
 
+            # N-gramで事前フィルタリング
+            ngram_candidates = []
+            for method_id_t1, method_t1 in candidates.items():
                 ngram_sim = self.similarity_calc.calc_ngram_similarity(
                     method_t.token_sequence, method_t1.token_sequence
                 )
+                if ngram_sim >= self.ngram_threshold:
+                    ngram_candidates.append((method_id_t1, method_t1, ngram_sim))
 
-                if ngram_sim < self.ngram_threshold:
-                    continue
-
+            # N-gramでフィルタリングされた候補のみLCS計算
+            for method_id_t1, method_t1, ngram_sim in ngram_candidates:
                 lcs_sim = self.similarity_calc.calc_lcs_similarity(
                     method_t.token_sequence, method_t1.token_sequence
                 )
@@ -368,7 +401,6 @@ class MethodTracker:
                     )
                 )
 
-                matched_t.add(method_id_t)
                 matched_t1.add(method_id_t1)
 
         self.logger.info(f"Found {len(matches)} similarity-based matches")
