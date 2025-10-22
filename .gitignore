@@ -18,3 +18,6 @@ Repos/*/*
 
 # Python chache files
 __pycache__/
+
+# Ignore documentation directory
+docs/
