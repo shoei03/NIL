@@ -43,4 +43,9 @@ class PairEnricher:
 
         # 統計情報を出力
         logging.info(f"Completed: {len(transition_dirs)} transitions processed")
-        self.processor.statistics.log_statistics()
+
+        # 各遷移ディレクトリの統計情報を保存
+        self.processor.statistics.save_transition_statistics(self.output_dir)
+
+        # 統計サマリーを保存
+        self.processor.statistics.save_statistics_summary(self.output_dir)

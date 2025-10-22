@@ -1,0 +1,16 @@
+pair_type,change_category,total_count
+added,pair_formed_naturally,42213
+added,pair_formed_by_refactoring,16345
+added,both_added,12731
+added,method_b_added,6062
+added,method_a_added,5480
+added,pair_formed_by_copy,688
+deleted,pair_dissolved_naturally,41887
+deleted,pair_dissolved_by_refactoring,17507
+deleted,both_deleted,4035
+deleted,method_a_deleted,2632
+deleted,method_b_deleted,2786
+persisted,stable_unchanged,129597
+persisted,stable_with_minor_changes,13519
+persisted,stable_with_refactoring,5
+persisted,stable_both_refactored,3
