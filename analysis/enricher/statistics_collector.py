@@ -141,6 +141,8 @@ class StatisticsCollector(StatisticsCollectorInterface):
         # CSVファイルに保存
         if csv_data:
             df = pd.DataFrame(csv_data)
+            # transition, pair_type, change_categoryでソート
+            df = df.sort_values(["transition", "pair_type", "change_category"])
             csv_path = output_dir / "pair_enrichment_statistics.csv"
             df.to_csv(csv_path, index=False)
             logging.info(f"Pair enrichment statistics saved to: {csv_path}")
