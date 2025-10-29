@@ -24,3 +24,16 @@
 2025-10-29 23:00:30,037 INFO -   Files: 112
 2025-10-29 23:00:30,037 INFO -   Total size: 345.19 MB
 2025-10-29 23:00:30,037 INFO - ============================================================
+2025-10-30 00:09:19,716 INFO - ============================================================
+2025-10-30 00:09:19,716 INFO - Starting results index generation
+2025-10-30 00:09:19,716 INFO - Detected results directory: /Users/shoei-y/research/NIL/results
+2025-10-30 00:09:19,716 INFO - Results directory: /Users/shoei-y/research/NIL/results
+2025-10-30 00:09:19,717 INFO - Found 37 run directories
+2025-10-30 00:09:19,738 INFO - Index validation: OK
+2025-10-30 00:09:19,739 INFO - ============================================================
+2025-10-30 00:09:19,739 INFO - Index generation completed
+2025-10-30 00:09:19,739 INFO -   Output: /Users/shoei-y/research/NIL/analysis/output/results_index.json
+2025-10-30 00:09:19,739 INFO -   Runs: 37
+2025-10-30 00:09:19,739 INFO -   Files: 148
+2025-10-30 00:09:19,739 INFO -   Total size: 352.29 MB
+2025-10-30 00:09:19,739 INFO - ============================================================
