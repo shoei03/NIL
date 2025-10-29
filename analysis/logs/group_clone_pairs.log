@@ -1,0 +1,86 @@
+2025-10-30 00:07:55,201 INFO - ============================================================
+2025-10-30 00:07:55,201 INFO - Starting clone pairs grouping
+2025-10-30 00:07:55,202 INFO - Loaded 37 runs from index
+2025-10-30 00:07:55,211 ERROR - Failed to read /Users/shoei-y/research/NIL/results/20090801_000716_9d008057/clone_pairs.csv: No columns to parse from file
+2025-10-30 00:07:55,220 INFO - Found 194 clone groups
+2025-10-30 00:07:55,225 INFO - Processed 20111010_015605_87a3370b: 357 -> 478 rows
+2025-10-30 00:07:55,233 INFO - Found 281 clone groups
+2025-10-30 00:07:55,235 INFO - Processed 20120209_113131_71b65ab6: 611 -> 724 rows
+2025-10-30 00:07:55,246 INFO - Found 345 clone groups
+2025-10-30 00:07:55,247 INFO - Processed 20120529_212811_10e3edea: 946 -> 950 rows
+2025-10-30 00:07:55,259 INFO - Found 388 clone groups
+2025-10-30 00:07:55,261 INFO - Processed 20121101_053615_026bc001: 1013 -> 1077 rows
+2025-10-30 00:07:55,275 INFO - Found 440 clone groups
+2025-10-30 00:07:55,277 INFO - Processed 20130212_043101_13c5d72a: 1226 -> 1251 rows
+2025-10-30 00:07:55,292 INFO - Found 465 clone groups
+2025-10-30 00:07:55,294 INFO - Processed 20130520_021854_68953ed9: 1296 -> 1331 rows
+2025-10-30 00:07:55,318 INFO - Found 685 clone groups
+2025-10-30 00:07:55,321 INFO - Processed 20130906_121306_ebee2f8e: 2134 -> 1981 rows
+2025-10-30 00:07:55,347 INFO - Found 819 clone groups
+2025-10-30 00:07:55,351 INFO - Processed 20131225_104438_5e6e590e: 2411 -> 2349 rows
+2025-10-30 00:07:55,378 INFO - Found 859 clone groups
+2025-10-30 00:07:55,381 INFO - Processed 20140315_074455_7bb9174e: 2476 -> 2439 rows
+2025-10-30 00:07:55,419 INFO - Found 941 clone groups
+2025-10-30 00:07:55,423 INFO - Processed 20140708_042450_d6eace7b: 2837 -> 2700 rows
+2025-10-30 00:07:55,458 INFO - Found 1068 clone groups
+2025-10-30 00:07:55,462 INFO - Processed 20141204_074003_4661525c: 3236 -> 3071 rows
+2025-10-30 00:07:55,499 INFO - Found 1134 clone groups
+2025-10-30 00:07:55,504 INFO - Processed 20150625_024213_55d07c0c: 3397 -> 3259 rows
+2025-10-30 00:07:55,619 INFO - Found 1280 clone groups
+2025-10-30 00:07:55,623 INFO - Processed 20151119_014958_d6ceebab: 11353 -> 3838 rows
+2025-10-30 00:07:55,750 INFO - Found 1459 clone groups
+2025-10-30 00:07:55,756 INFO - Processed 20160729_092155_aa88215a: 12099 -> 4541 rows
+2025-10-30 00:07:55,818 INFO - Found 1525 clone groups
+2025-10-30 00:07:55,824 INFO - Processed 20170415_224643_61d84dbf: 5416 -> 4699 rows
+2025-10-30 00:07:55,887 INFO - Found 1593 clone groups
+2025-10-30 00:07:55,892 INFO - Processed 20171124_011347_b45325e2: 5297 -> 4884 rows
+2025-10-30 00:07:55,950 INFO - Found 1636 clone groups
+2025-10-30 00:07:55,956 INFO - Processed 20180415_085830_d5d5a718: 5371 -> 5030 rows
+2025-10-30 00:07:56,016 INFO - Found 1784 clone groups
+2025-10-30 00:07:56,022 INFO - Processed 20181029_085706_96d321c7: 5690 -> 5474 rows
+2025-10-30 00:07:56,097 INFO - Found 1848 clone groups
+2025-10-30 00:07:56,104 INFO - Processed 20190309_065227_0d893d08: 6142 -> 5812 rows
+2025-10-30 00:07:56,183 INFO - Found 1890 clone groups
+2025-10-30 00:07:56,191 INFO - Processed 20190822_202836_8f6118c6: 6230 -> 5965 rows
+2025-10-30 00:07:56,263 INFO - Found 1901 clone groups
+2025-10-30 00:07:56,270 INFO - Processed 20191207_021832_857b3d66: 6243 -> 5982 rows
+2025-10-30 00:07:56,339 INFO - Found 1908 clone groups
+2025-10-30 00:07:56,346 INFO - Processed 20200215_185511_b41911e5: 6336 -> 6093 rows
+2025-10-30 00:07:56,424 INFO - Found 1964 clone groups
+2025-10-30 00:07:56,433 INFO - Processed 20200506_164945_18a7e973: 6593 -> 6318 rows
+2025-10-30 00:07:56,523 INFO - Found 2028 clone groups
+2025-10-30 00:07:56,530 INFO - Processed 20200912_100015_2067d7e3: 7023 -> 6610 rows
+2025-10-30 00:07:56,615 INFO - Found 2035 clone groups
+2025-10-30 00:07:56,623 INFO - Processed 20201127_011850_43fa1600: 7593 -> 6869 rows
+2025-10-30 00:07:56,709 INFO - Found 2098 clone groups
+2025-10-30 00:07:56,720 INFO - Processed 20210225_094059_b1363b4c: 7991 -> 7095 rows
+2025-10-30 00:07:56,819 INFO - Found 2192 clone groups
+2025-10-30 00:07:56,834 INFO - Processed 20210608_215541_e4dedcaf: 8621 -> 7421 rows
+2025-10-30 00:07:56,927 INFO - Found 2232 clone groups
+2025-10-30 00:07:56,935 INFO - Processed 20211021_094940_ad0baebc: 8811 -> 7560 rows
+2025-10-30 00:07:57,030 INFO - Found 2264 clone groups
+2025-10-30 00:07:57,039 INFO - Processed 20220216_053338_08104e8c: 9089 -> 7752 rows
+2025-10-30 00:07:57,164 INFO - Found 2344 clone groups
+2025-10-30 00:07:57,174 INFO - Processed 20220824_021826_224458ee: 11362 -> 8363 rows
+2025-10-30 00:07:57,289 INFO - Found 2356 clone groups
+2025-10-30 00:07:57,298 INFO - Processed 20221228_040034_21d6fcbd: 10259 -> 8323 rows
+2025-10-30 00:07:57,423 INFO - Found 2407 clone groups
+2025-10-30 00:07:57,436 INFO - Processed 20230402_231338_ac79adcf: 11753 -> 8784 rows
+2025-10-30 00:07:57,582 INFO - Found 2429 clone groups
+2025-10-30 00:07:57,593 INFO - Processed 20230805_020630_0eeb8cbe: 13028 -> 9333 rows
+2025-10-30 00:07:57,763 INFO - Found 2471 clone groups
+2025-10-30 00:07:57,774 INFO - Processed 20231220_064950_ae860227: 14991 -> 9838 rows
+2025-10-30 00:07:57,931 INFO - Found 2438 clone groups
+2025-10-30 00:07:57,942 INFO - Processed 20240517_010707_737c69cf: 14510 -> 9623 rows
+2025-10-30 00:07:58,101 INFO - Found 2471 clone groups
+2025-10-30 00:07:58,111 INFO - Processed 20250301_032259_928fb7eb: 14760 -> 9801 rows
+2025-10-30 00:07:58,112 INFO - ============================================================
+2025-10-30 00:07:58,112 INFO - Processing completed
+2025-10-30 00:07:58,112 INFO -   Total runs: 37
+2025-10-30 00:07:58,112 INFO -   Successful: 36
+2025-10-30 00:07:58,112 INFO -   Failed: 1
+2025-10-30 00:07:58,112 INFO -   Total input rows: 238501
+2025-10-30 00:07:58,112 INFO -   Total output rows: 187618
+2025-10-30 00:07:58,112 INFO - ============================================================
+2025-10-30 00:07:58,112 WARNING - Failed runs:
+2025-10-30 00:07:58,112 WARNING -   20090801_000716_9d008057: Empty or malformed CSV: No columns to parse from file
