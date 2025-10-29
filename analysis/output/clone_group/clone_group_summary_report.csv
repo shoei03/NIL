@@ -1,0 +1,2 @@
+analysis_type,timestamp,config,20171124_011347_b45325e2_keys
+clone_group,2025-10-27T17:49:44.470937,"{'ngram_threshold': 50, 'lcs_threshold': 60, 'significance_level': 0.05}","['enhanced_code_blocks', 'component_statistics']"

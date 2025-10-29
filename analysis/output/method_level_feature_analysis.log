@@ -1,0 +1,96 @@
+2025-10-27 17:22:03,897 INFO - MethodLevelFeatureAnalyzer初期化完了
+2025-10-27 17:22:03,897 INFO - メソッドレベル特徴量分析開始
+2025-10-27 17:22:03,898 INFO - code_blocks_enhanced.csv読み込み: ../results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 17:22:03,958 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:22:03,958 INFO - method_tracing.csv読み込み: ../analysis/output/pair_diff_with_lists/20171124_011347_b45325e2_to_20180415_085830_d5d5a718/method_tracing.csv
+2025-10-27 17:22:03,965 INFO - 読み込み完了: 11726個の追跡レコード
+2025-10-27 17:22:03,965 INFO - clone_pairs.csv読み込み: ../results/20171124_011347_b45325e2/clone_pairs.csv
+2025-10-27 17:22:03,971 INFO - 読み込み完了: 5298個のペア
+2025-10-27 17:22:04,071 INFO - 削除されたメソッド数: 638
+2025-10-27 17:22:04,071 INFO - メソッドレベル特徴量計算中...
+2025-10-27 17:22:08,335 INFO - メソッド特徴量計算完了: 11048個のメソッド
+2025-10-27 17:22:08,337 INFO - メソッドレベル統計検定実行中...
+2025-10-27 17:22:08,346 INFO - メソッドレベル統計検定完了: 13個の検定を実行
+2025-10-27 17:22:08,391 INFO - メソッド特徴量保存完了: output/method_level_analysis
+2025-10-27 17:22:08,391 INFO - メソッド特徴量可視化作成中...
+2025-10-27 17:22:09,015 INFO - メソッド特徴量可視化保存完了: output/method_level_analysis/method_level_features_visualization.png
+2025-10-27 17:22:09,015 INFO - メソッドレベル特徴量分析完了
+2025-10-27 17:49:50,674 INFO - MethodLevelFeatureAnalyzer初期化完了
+2025-10-27 17:49:50,675 INFO - メソッドレベル特徴量分析開始
+2025-10-27 17:49:50,675 INFO - メソッド追跡データと組み合わせた分析開始: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:49:50,675 INFO - スナップショットデータ読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:49:50,675 INFO - clone_pairs.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/clone_pairs.csv
+2025-10-27 17:49:50,679 INFO - 読み込み完了: 5298個のペア
+2025-10-27 17:49:50,679 INFO - code_blocks.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks.csv
+2025-10-27 17:49:50,734 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:49:50,734 INFO - code_blocks_enhanced.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 17:49:50,787 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:49:50,788 INFO - 読み込み完了: ['clone_pairs', 'code_blocks', 'enhanced_code_blocks']
+2025-10-27 17:49:50,788 INFO - method_tracing.csv読み込み: output/pair_diff_with_lists/20171124_011347_b45325e2_to_20180415_085830_d5d5a718/method_tracing.csv
+2025-10-27 17:49:50,794 INFO - 読み込み完了: 11726個の追跡レコード
+2025-10-27 17:49:50,897 INFO - 削除されたメソッド数: 638
+2025-10-27 17:49:50,897 INFO - メソッドレベル特徴量計算開始
+2025-10-27 17:49:55,134 INFO - メソッドレベル特徴量計算完了: 11048個のメソッド
+2025-10-27 17:49:55,138 INFO - メソッドレベル統計検定実行中...
+2025-10-27 17:49:55,138 INFO - 統計検定実行中...
+2025-10-27 17:49:55,140 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,140 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,141 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,142 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,142 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,143 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,144 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,144 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,145 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,146 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,146 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:49:55,147 WARNING - Mann-Whitney U検定エラー: 'AnalysisConfig' object has no attribute 'alternative'
+2025-10-27 17:50:10,639 INFO - MethodLevelFeatureAnalyzer初期化完了
+2025-10-27 17:50:10,639 INFO - メソッドレベル特徴量分析開始
+2025-10-27 17:50:10,639 INFO - メソッド追跡データと組み合わせた分析開始: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:50:10,639 INFO - スナップショットデータ読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:50:10,639 INFO - clone_pairs.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/clone_pairs.csv
+2025-10-27 17:50:10,643 INFO - 読み込み完了: 5298個のペア
+2025-10-27 17:50:10,643 INFO - code_blocks.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks.csv
+2025-10-27 17:50:10,697 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:50:10,697 INFO - code_blocks_enhanced.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 17:50:10,751 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:50:10,751 INFO - 読み込み完了: ['clone_pairs', 'code_blocks', 'enhanced_code_blocks']
+2025-10-27 17:50:10,751 INFO - method_tracing.csv読み込み: output/pair_diff_with_lists/20171124_011347_b45325e2_to_20180415_085830_d5d5a718/method_tracing.csv
+2025-10-27 17:50:10,758 INFO - 読み込み完了: 11726個の追跡レコード
+2025-10-27 17:50:10,858 INFO - 削除されたメソッド数: 638
+2025-10-27 17:50:10,858 INFO - メソッドレベル特徴量計算開始
+2025-10-27 17:50:15,040 INFO - メソッドレベル特徴量計算完了: 11048個のメソッド
+2025-10-27 17:50:15,042 INFO - メソッドレベル統計検定実行中...
+2025-10-27 17:50:15,042 INFO - 統計検定実行中...
+2025-10-27 17:50:28,544 INFO - MethodLevelFeatureAnalyzer初期化完了
+2025-10-27 17:50:28,544 INFO - メソッドレベル特徴量分析開始
+2025-10-27 17:50:28,544 INFO - メソッド追跡データと組み合わせた分析開始: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:50:28,544 INFO - スナップショットデータ読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:50:28,544 INFO - clone_pairs.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/clone_pairs.csv
+2025-10-27 17:50:28,548 INFO - 読み込み完了: 5298個のペア
+2025-10-27 17:50:28,549 INFO - code_blocks.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks.csv
+2025-10-27 17:50:28,602 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:50:28,602 INFO - code_blocks_enhanced.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 17:50:28,656 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:50:28,656 INFO - 読み込み完了: ['clone_pairs', 'code_blocks', 'enhanced_code_blocks']
+2025-10-27 17:50:28,656 INFO - method_tracing.csv読み込み: output/pair_diff_with_lists/20171124_011347_b45325e2_to_20180415_085830_d5d5a718/method_tracing.csv
+2025-10-27 17:50:28,663 INFO - 読み込み完了: 11726個の追跡レコード
+2025-10-27 17:50:28,764 INFO - 削除されたメソッド数: 638
+2025-10-27 17:50:28,764 INFO - メソッドレベル特徴量計算開始
+2025-10-27 17:50:33,033 INFO - メソッドレベル特徴量計算完了: 11048個のメソッド
+2025-10-27 17:50:33,035 INFO - メソッドレベル統計検定実行中...
+2025-10-27 17:50:33,035 INFO - 統計検定実行中...
+2025-10-27 17:50:33,053 INFO - 統計検定完了: 12個の検定を実行
+2025-10-27 17:50:33,053 INFO - メソッドレベル統計検定完了: 12個の検定
+2025-10-27 17:50:33,053 INFO - メソッド追跡データと組み合わせた分析完了: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:50:33,055 INFO - 結果保存開始: /Users/shoei-y/research/NIL/analysis/output/method_level_feature
+2025-10-27 17:50:33,065 INFO - 辞書保存: /Users/shoei-y/research/NIL/analysis/output/method_level_feature/method_level_feature_20171124_011347_b45325e2.csv
+2025-10-27 17:50:33,065 INFO - 結果保存完了
+2025-10-27 17:50:33,066 INFO - 結果保存開始: /Users/shoei-y/research/NIL/analysis/output/method_level_feature
+2025-10-27 17:50:33,066 INFO - 辞書保存: /Users/shoei-y/research/NIL/analysis/output/method_level_feature/method_level_feature_summary_report.csv
+2025-10-27 17:50:33,066 INFO - 結果保存完了
+2025-10-27 17:50:33,066 INFO - === 分析結果要約 ===
+2025-10-27 17:50:33,066 INFO - 20171124_011347_b45325e2: 2項目
+2025-10-27 17:50:33,066 INFO - === 分析完了 ===
+2025-10-27 17:50:33,066 INFO - メソッドレベル特徴量分析完了

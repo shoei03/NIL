@@ -1,0 +1,334 @@
+#!/usr/bin/env python3
+"""
+クローングループ分析器
+
+クローンペアからグラフ理論の連結成分を用いてクローンのグループを作成し、
+code_blocks.csvにグループ情報を追加する。
+"""
+
+import argparse
+import logging
+from pathlib import Path
+from typing import List, Optional, Set
+
+import pandas as pd
+from graph_utils import GraphUtils
+from tqdm import tqdm
+from utils.logging_utils import setup_logging
+
+
+class CloneGroupAnalyzer:
+    """クローングループ分析器"""
+
+    def __init__(
+        self,
+        ngram_threshold: int = 50,
+        lcs_threshold: int = 60,
+        log_file: Optional[Path] = None,
+    ):
+        """
+        初期化
+
+        Args:
+            ngram_threshold: N-gram類似度の閾値（0-100）
+            lcs_threshold: LCS類似度の閾値（0-100）
+            log_file: ログファイルのパス
+        """
+        self.ngram_threshold = ngram_threshold
+        self.lcs_threshold = lcs_threshold
+
+        # ログ設定
+        if log_file is None:
+            log_file = Path(__file__).parent / "output" / "clone_group_analysis.log"
+
+        setup_logging(log_file)
+        self.logger = logging.getLogger(__name__)
+
+        # グラフユーティリティの初期化
+        self.graph_utils = GraphUtils(self.logger)
+
+        self.logger.info(
+            f"CloneGroupAnalyzer初期化完了: N-gram閾値={ngram_threshold}, LCS閾値={lcs_threshold}"
+        )
+
+    def analyze_snapshot(self, snapshot_path: Path) -> None:
+        """
+        単一スナップショットの分析とcode_blocks拡張
+
+        Args:
+            snapshot_path: スナップショットディレクトリのパス
+                          (例: results/20171124_011347_b45325e2/)
+        """
+        self.logger.info(f"スナップショット分析開始: {snapshot_path}")
+
+        # ファイルパスの確認
+        clone_pairs_path = snapshot_path / "clone_pairs.csv"
+        code_blocks_path = snapshot_path / "code_blocks.csv"
+        enhanced_output_path = snapshot_path / "code_blocks_enhanced.csv"
+
+        if not clone_pairs_path.exists():
+            self.logger.error(f"clone_pairs.csvが見つかりません: {clone_pairs_path}")
+            return
+
+        if not code_blocks_path.exists():
+            self.logger.error(f"code_blocks.csvが見つかりません: {code_blocks_path}")
+            return
+
+        try:
+            # データ読み込み
+            pairs_df = self.load_clone_pairs(clone_pairs_path)
+            code_blocks_df = self.load_code_blocks(code_blocks_path)
+
+            # グラフ構築と連結成分検出
+            graph = self.graph_utils.build_graph_from_pairs(
+                pairs_df, self.ngram_threshold, self.lcs_threshold
+            )
+            components = self.graph_utils.find_connected_components(graph)
+
+            # code_blocksにグループ情報を追加
+            enhanced_df = self.enhance_code_blocks(code_blocks_df, components, graph)
+
+            # 結果保存
+            self.save_enhanced_code_blocks(enhanced_df, enhanced_output_path)
+
+            self.logger.info(f"スナップショット分析完了: {snapshot_path}")
+
+        except Exception as e:
+            self.logger.error(
+                f"スナップショット分析中にエラーが発生: {snapshot_path}, エラー: {e}"
+            )
+            raise
+
+    def analyze_all_snapshots(self, results_dir: Path) -> None:
+        """
+        全スナップショットの一括分析
+
+        Args:
+            results_dir: resultsディレクトリのパス
+        """
+        self.logger.info(f"全スナップショット分析開始: {results_dir}")
+
+        # スナップショットディレクトリを取得
+        snapshot_dirs = [
+            d for d in results_dir.iterdir() if d.is_dir() and d.name.count("_") >= 2
+        ]
+
+        if not snapshot_dirs:
+            self.logger.warning(
+                f"スナップショットディレクトリが見つかりません: {results_dir}"
+            )
+            return
+
+        self.logger.info(f"発見されたスナップショット数: {len(snapshot_dirs)}")
+
+        # 各スナップショットを分析
+        for snapshot_dir in tqdm(snapshot_dirs, desc="スナップショット分析"):
+            try:
+                self.analyze_snapshot(snapshot_dir)
+            except Exception as e:
+                self.logger.error(
+                    f"スナップショット分析失敗: {snapshot_dir}, エラー: {e}"
+                )
+                continue
+
+        self.logger.info("全スナップショット分析完了")
+
+    def load_clone_pairs(self, csv_path: Path) -> pd.DataFrame:
+        """
+        clone_pairs.csvを読み込む
+
+        Args:
+            csv_path: clone_pairs.csvのパス
+
+        Returns:
+            クローンペアのDataFrame
+        """
+        self.logger.info(f"clone_pairs.csv読み込み: {csv_path}")
+
+        try:
+            df = pd.read_csv(
+                csv_path,
+                header=None,
+                names=["block_id1", "block_id2", "ngram_similarity", "lcs_similarity"],
+            )
+
+            # データ型の変換
+            df["ngram_similarity"] = pd.to_numeric(
+                df["ngram_similarity"], errors="coerce"
+            )
+            df["lcs_similarity"] = pd.to_numeric(df["lcs_similarity"], errors="coerce")
+
+            # 欠損値の処理
+            df = df.dropna(subset=["block_id1", "block_id2", "ngram_similarity"])
+
+            self.logger.info(f"読み込み完了: {len(df)}個のペア")
+            return df
+
+        except Exception as e:
+            self.logger.error(f"clone_pairs.csv読み込みエラー: {e}")
+            raise
+
+    def load_code_blocks(self, csv_path: Path) -> pd.DataFrame:
+        """
+        code_blocks.csvを読み込む
+
+        Args:
+            csv_path: code_blocks.csvのパス
+
+        Returns:
+            コードブロックのDataFrame
+        """
+        self.logger.info(f"code_blocks.csv読み込み: {csv_path}")
+
+        try:
+            df = pd.read_csv(
+                csv_path,
+                header=None,
+                names=[
+                    "token_hash",
+                    "file_path",
+                    "start_line",
+                    "end_line",
+                    "method_name",
+                    "return_type",
+                    "parameters",
+                    "commit_hash",
+                    "token_sequence",
+                ],
+            )
+
+            self.logger.info(f"読み込み完了: {len(df)}個のコードブロック")
+            return df
+
+        except Exception as e:
+            self.logger.error(f"code_blocks.csv読み込みエラー: {e}")
+            raise
+
+    def enhance_code_blocks(
+        self, code_blocks_df: pd.DataFrame, components: List[Set[str]], graph: nx.Graph
+    ) -> pd.DataFrame:
+        """
+        code_blocksにグループ情報を追加する
+
+        Args:
+            code_blocks_df: コードブロックのDataFrame
+            components: 連結成分のリスト
+            graph: NetworkX Graph
+
+        Returns:
+            グループ情報が追加されたDataFrame
+        """
+        self.logger.info("code_blocksにグループ情報を追加中...")
+
+        # ノードIDから成分IDへのマッピングを作成
+        node_to_component = self.graph_utils.get_node_to_component_mapping(components)
+
+        # 成分の統計情報を計算
+        component_stats = self.graph_utils.calculate_component_statistics(
+            graph, components
+        )
+
+        # 新しいカラムを初期化
+        code_blocks_df = code_blocks_df.copy()
+        code_blocks_df["group_id"] = -1  # グループに属さない場合は-1
+        code_blocks_df["group_size"] = 0
+        code_blocks_df["avg_similarity"] = 0.0
+
+        # 各コードブロックにグループ情報を設定
+        for idx, row in code_blocks_df.iterrows():
+            token_hash = row["token_hash"]
+
+            if token_hash in node_to_component:
+                component_id = node_to_component[token_hash]
+                stats = component_stats[component_id]
+
+                code_blocks_df.at[idx, "group_id"] = component_id
+                code_blocks_df.at[idx, "group_size"] = stats["size"]
+                code_blocks_df.at[idx, "avg_similarity"] = stats["avg_similarity"]
+
+        # グループに属するブロック数をカウント
+        grouped_count = len(code_blocks_df[code_blocks_df["group_id"] != -1])
+        ungrouped_count = len(code_blocks_df[code_blocks_df["group_id"] == -1])
+
+        self.logger.info(
+            f"グループ化完了: {grouped_count}個のブロックがグループ化, {ungrouped_count}個のブロックが単独"
+        )
+
+        return code_blocks_df
+
+    def save_enhanced_code_blocks(
+        self, enhanced_df: pd.DataFrame, output_path: Path
+    ) -> None:
+        """
+        拡張されたcode_blocks.csvを保存する
+
+        Args:
+            enhanced_df: グループ情報が追加されたDataFrame
+            output_path: 出力ファイルのパス
+        """
+        self.logger.info(f"拡張code_blocks.csv保存: {output_path}")
+
+        try:
+            # 出力ディレクトリを作成
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # CSVファイルとして保存
+            enhanced_df.to_csv(output_path, index=False, header=False)
+
+            self.logger.info(f"保存完了: {output_path}")
+
+        except Exception as e:
+            self.logger.error(f"保存エラー: {e}")
+            raise
+
+
+def main():
+    """メイン関数"""
+    parser = argparse.ArgumentParser(description="クローングループ分析器")
+    parser.add_argument(
+        "--snapshot",
+        type=str,
+        help="分析するスナップショットID (例: 20171124_011347_b45325e2)",
+    )
+    parser.add_argument(
+        "--all-snapshots", action="store_true", help="全スナップショットを分析"
+    )
+    parser.add_argument(
+        "--ngram-threshold",
+        type=int,
+        default=50,
+        help="N-gram類似度の閾値 (デフォルト: 50)",
+    )
+    parser.add_argument(
+        "--lcs-threshold", type=int, default=60, help="LCS類似度の閾値 (デフォルト: 60)"
+    )
+    parser.add_argument(
+        "--results-dir",
+        type=str,
+        default="../results",
+        help="resultsディレクトリのパス (デフォルト: ../results)",
+    )
+
+    args = parser.parse_args()
+
+    # パスの設定
+    results_dir = Path(args.results_dir)
+
+    # 分析器の初期化
+    analyzer = CloneGroupAnalyzer(
+        ngram_threshold=args.ngram_threshold, lcs_threshold=args.lcs_threshold
+    )
+
+    # 分析実行
+    if args.snapshot:
+        snapshot_path = results_dir / args.snapshot
+        analyzer.analyze_snapshot(snapshot_path)
+    elif args.all_snapshots:
+        analyzer.analyze_all_snapshots(results_dir)
+    else:
+        print("--snapshot または --all-snapshots を指定してください")
+        return
+
+
+if __name__ == "__main__":
+    main()

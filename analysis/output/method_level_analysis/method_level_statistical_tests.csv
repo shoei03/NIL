@@ -1,0 +1,14 @@
+test_name,test_type,statistic,p_value,interpretation,deleted_mean,surviving_mean
+high_similarity_count_comparison,Mann-Whitney U,3670502.0,3.191846095497873e-06,high_similarity_countの違い,0.7561728395061729,0.5605769230769231
+medium_similarity_count_comparison,Mann-Whitney U,3607305.0,6.141302557410063e-05,medium_similarity_countの違い,0.5848765432098766,0.41951923076923076
+low_similarity_count_comparison,Mann-Whitney U,3369600.0,1.0,low_similarity_countの違い,0.0,0.0
+very_low_similarity_count_comparison,Mann-Whitney U,3369600.0,1.0,very_low_similarity_countの違い,0.0,0.0
+total_similar_methods_comparison,Mann-Whitney U,3788974.0,3.742181614753958e-09,total_similar_methodsの違い,1.3410493827160495,0.9800961538461539
+max_similarity_comparison,Mann-Whitney U,3762021.0,4.590394289755612e-08,max_similarityの違い,47.641975308641975,37.79538461538461
+min_similarity_comparison,Mann-Whitney U,2997784.0,8.439608926696104e-08,min_similarityの違い,89.0895061728395,91.5601923076923
+avg_similarity_comparison,Mann-Whitney U,3746415.5,1.5391423684547146e-07,avg_similarityの違い,45.94981948815483,36.634907768692464
+std_similarity_comparison,Mann-Whitney U,3593639.0,1.8526751380789448e-05,std_similarityの違い,1.3543634294993088,0.9172080416336055
+median_similarity_comparison,Mann-Whitney U,3740359.0,2.421980366387347e-07,median_similarityの違い,45.82175925925926,36.57706730769231
+similarity_range_comparison,Mann-Whitney U,3785293.0,4.653684581849332e-09,similarity_rangeの違い,-41.44753086419753,-53.76480769230769
+high_similarity_ratio_comparison,Mann-Whitney U,3640660.0,2.7517867999043553e-05,high_similarity_ratioの違い,0.3208537397698025,0.2559536795239284
+connectivity_score_comparison,Mann-Whitney U,3788974.0,3.742181614753958e-09,connectivity_scoreの違い,0.029801097393689985,0.02177991452991453

@@ -1,0 +1,16 @@
+enhanced_code_blocks,component_statistics
+"                             token_hash  ... avg_similarity
+0      d84a64427447c7f8d355a239e3ace737  ...            0.0
+1      ca15863f0cbf7eaaf105f55612333c80  ...            0.0
+2      38a8df522dc6cd6b7c325afca48af8b7  ...            0.0
+3      52244c53e8b245fed97bdb74b604ffab  ...            0.0
+4      85b4221f042e1764040d0cc920e7936b  ...            0.0
+...                                 ...  ...            ...
+11043  249a731df4d0c4bc7f1f9cdd690724bc  ...            0.0
+11044  d7fa6a14141b764f7873157c9b95019d  ...           85.5
+11045  766dd91cc609b5efb48b33eadcaa8b9c  ...           85.5
+11046  bd2416888422f272be3754c5f4c6cd8a  ...            0.0
+11047  eb4d5041c9480bf33940a4d86198cb1a  ...            0.0
+
+[11048 rows x 12 columns]","   avg_size  max_size  min_size  total_nodes  num_components
+0  3.065913        45         1         4884            1593"

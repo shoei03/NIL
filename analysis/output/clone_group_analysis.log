@@ -1,0 +1,45 @@
+2025-10-27 15:37:33,226 INFO - CloneGroupAnalyzer初期化完了: N-gram閾値=50, LCS閾値=60
+2025-10-27 15:37:33,226 INFO - スナップショット分析開始: ../results/20171124_011347_b45325e2
+2025-10-27 15:37:33,226 INFO - clone_pairs.csv読み込み: ../results/20171124_011347_b45325e2/clone_pairs.csv
+2025-10-27 15:37:33,234 INFO - 読み込み完了: 5298個のペア
+2025-10-27 15:37:33,234 INFO - code_blocks.csv読み込み: ../results/20171124_011347_b45325e2/code_blocks.csv
+2025-10-27 15:37:33,288 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 15:37:33,351 INFO - グラフ構築完了: 5298個のエッジを追加, 0個のエッジをフィルタリング
+2025-10-27 15:37:33,352 INFO - グラフ統計: 4884個のノード, 5111個のエッジ
+2025-10-27 15:37:33,354 INFO - 連結成分検出完了: 1593個の成分
+2025-10-27 15:37:33,354 INFO - 成分サイズ統計: 最大=45, 最小=1, 平均=3.1
+2025-10-27 15:37:33,354 INFO - code_blocksにグループ情報を追加中...
+2025-10-27 15:37:33,515 INFO - グループ化完了: 4941個のブロックがグループ化, 6107個のブロックが単独
+2025-10-27 15:37:33,515 INFO - 拡張code_blocks.csv保存: ../results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 15:37:33,597 INFO - 保存完了: ../results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 15:37:33,597 INFO - スナップショット分析完了: ../results/20171124_011347_b45325e2
+2025-10-27 17:49:44,010 INFO - CloneGroupAnalyzer初期化完了
+2025-10-27 17:49:44,010 INFO - クローングループ分析開始
+2025-10-27 17:49:44,010 INFO - スナップショット分析開始: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:49:44,010 INFO - スナップショットデータ読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:49:44,010 INFO - clone_pairs.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/clone_pairs.csv
+2025-10-27 17:49:44,020 INFO - 読み込み完了: 5298個のペア
+2025-10-27 17:49:44,020 INFO - code_blocks.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks.csv
+2025-10-27 17:49:44,075 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:49:44,075 INFO - code_blocks_enhanced.csv読み込み: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2/code_blocks_enhanced.csv
+2025-10-27 17:49:44,131 INFO - 読み込み完了: 11048個のコードブロック
+2025-10-27 17:49:44,131 INFO - 読み込み完了: ['clone_pairs', 'code_blocks', 'enhanced_code_blocks']
+2025-10-27 17:49:44,131 INFO - グラフ構築中...
+2025-10-27 17:49:44,195 INFO - グラフ構築完了: 5298個のエッジを追加, 0個をフィルタリング
+2025-10-27 17:49:44,195 INFO - 連結成分検出中...
+2025-10-27 17:49:44,197 INFO - 連結成分検出完了: 1593個の成分
+2025-10-27 17:49:44,197 INFO - 統計情報: {'avg_size': 3.065913370998117, 'max_size': 45, 'min_size': 1, 'total_nodes': 4884, 'num_components': 1593}
+2025-10-27 17:49:44,197 INFO - グループマッピング作成完了: 4884個のノード
+2025-10-27 17:49:44,201 INFO - グループ類似度計算完了: 1593個のグループ
+2025-10-27 17:49:44,458 INFO - コードブロック拡張完了: 11048個のブロック
+2025-10-27 17:49:44,458 INFO - スナップショット分析完了: /Users/shoei-y/research/NIL/results/20171124_011347_b45325e2
+2025-10-27 17:49:44,460 INFO - 結果保存開始: /Users/shoei-y/research/NIL/analysis/output/clone_group
+2025-10-27 17:49:44,470 INFO - 辞書保存: /Users/shoei-y/research/NIL/analysis/output/clone_group/clone_group_20171124_011347_b45325e2.csv
+2025-10-27 17:49:44,470 INFO - 結果保存完了
+2025-10-27 17:49:44,472 INFO - 結果保存開始: /Users/shoei-y/research/NIL/analysis/output/clone_group
+2025-10-27 17:49:44,472 INFO - 辞書保存: /Users/shoei-y/research/NIL/analysis/output/clone_group/clone_group_summary_report.csv
+2025-10-27 17:49:44,472 INFO - 結果保存完了
+2025-10-27 17:49:44,472 INFO - === 分析結果要約 ===
+2025-10-27 17:49:44,472 INFO - 20171124_011347_b45325e2: 2項目
+2025-10-27 17:49:44,472 INFO - === 分析完了 ===
+2025-10-27 17:49:44,472 INFO - クローングループ分析完了

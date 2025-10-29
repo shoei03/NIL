@@ -1,0 +1,18 @@
+method_features,statistical_tests
+"                             token_hash  ... is_deleted
+0      d84a64427447c7f8d355a239e3ace737  ...      False
+1      ca15863f0cbf7eaaf105f55612333c80  ...      False
+2      38a8df522dc6cd6b7c325afca48af8b7  ...      False
+3      52244c53e8b245fed97bdb74b604ffab  ...      False
+4      85b4221f042e1764040d0cc920e7936b  ...      False
+...                                 ...  ...        ...
+11043  249a731df4d0c4bc7f1f9cdd690724bc  ...      False
+11044  d7fa6a14141b764f7873157c9b95019d  ...      False
+11045  766dd91cc609b5efb48b33eadcaa8b9c  ...      False
+11046  bd2416888422f272be3754c5f4c6cd8a  ...      False
+11047  eb4d5041c9480bf33940a4d86198cb1a  ...      False
+
+[11048 rows x 25 columns]","                    high_similarity_count_comparison  ...                      connectivity_score_comparison
+0  {'test': 'False vs True', 'statistic': 3068698...  ...  {'test': 'False vs True', 'statistic': 2950226...
+
+[1 rows x 12 columns]"

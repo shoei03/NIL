@@ -1,0 +1,422 @@
+#!/usr/bin/env python3
+"""
+クローングループ統計分析器
+
+削除されたグループとそうでないグループの比較分析を行う。
+"""
+
+import argparse
+import logging
+from pathlib import Path
+from typing import Dict, Optional
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy import stats
+from scipy.stats import mannwhitneyu
+from utils.logging_utils import setup_logging
+
+
+class CloneGroupStatisticalAnalyzer:
+    """クローングループの統計分析器"""
+
+    def __init__(self, log_file: Optional[Path] = None):
+        """
+        初期化
+
+        Args:
+            log_file: ログファイルのパス
+        """
+        if log_file is None:
+            log_file = (
+                Path(__file__).parent
+                / "output"
+                / "clone_group_statistical_analysis.log"
+            )
+
+        setup_logging(log_file)
+        self.logger = logging.getLogger(__name__)
+
+        self.logger.info("CloneGroupStatisticalAnalyzer初期化完了")
+
+    def analyze_deleted_vs_surviving_groups(
+        self, enhanced_csv_path: Path, method_tracing_csv_path: Path, output_dir: Path
+    ) -> None:
+        """
+        削除されたグループとそうでないグループの比較分析
+
+        Args:
+            enhanced_csv_path: code_blocks_enhanced.csvのパス
+            method_tracing_csv_path: method_tracing.csvのパス
+            output_dir: 結果出力ディレクトリ
+        """
+        self.logger.info("削除されたグループとそうでないグループの比較分析開始")
+
+        # データ読み込み
+        enhanced_df = self.load_enhanced_code_blocks(enhanced_csv_path)
+        tracing_df = self.load_method_tracing(method_tracing_csv_path)
+
+        # 削除されたメソッドを特定
+        deleted_methods = self.identify_deleted_methods(tracing_df)
+
+        # グループの削除状況を分析
+        group_deletion_analysis = self.analyze_group_deletion_patterns(
+            enhanced_df, deleted_methods
+        )
+
+        # 統計検定実行
+        statistical_tests = self.perform_statistical_tests(
+            enhanced_df, deleted_methods, group_deletion_analysis
+        )
+
+        # 結果保存
+        self.save_analysis_results(
+            group_deletion_analysis, statistical_tests, output_dir
+        )
+
+        # 可視化
+        self.create_visualizations(
+            enhanced_df, deleted_methods, group_deletion_analysis, output_dir
+        )
+
+        self.logger.info("比較分析完了")
+
+    def load_enhanced_code_blocks(self, csv_path: Path) -> pd.DataFrame:
+        """拡張されたcode_blocks.csvを読み込む"""
+        self.logger.info(f"code_blocks_enhanced.csv読み込み: {csv_path}")
+
+        df = pd.read_csv(
+            csv_path,
+            header=None,
+            names=[
+                "token_hash",
+                "file_path",
+                "start_line",
+                "end_line",
+                "method_name",
+                "return_type",
+                "parameters",
+                "commit_hash",
+                "token_sequence",
+                "group_id",
+                "group_size",
+                "avg_similarity",
+            ],
+        )
+
+        self.logger.info(f"読み込み完了: {len(df)}個のコードブロック")
+        return df
+
+    def load_method_tracing(self, csv_path: Path) -> pd.DataFrame:
+        """method_tracing.csvを読み込む"""
+        self.logger.info(f"method_tracing.csv読み込み: {csv_path}")
+
+        df = pd.read_csv(csv_path)
+
+        self.logger.info(f"読み込み完了: {len(df)}個の追跡レコード")
+        return df
+
+    def identify_deleted_methods(self, tracing_df: pd.DataFrame) -> set:
+        """削除されたメソッドのtoken_hashを特定"""
+        deleted_methods = set()
+
+        for _, row in tracing_df.iterrows():
+            if row["change_type"] == "deleted" and pd.notna(row["method_t_token_hash"]):
+                deleted_methods.add(str(row["method_t_token_hash"]))
+
+        self.logger.info(f"削除されたメソッド数: {len(deleted_methods)}")
+        return deleted_methods
+
+    def analyze_group_deletion_patterns(
+        self, enhanced_df: pd.DataFrame, deleted_methods: set
+    ) -> Dict:
+        """グループの削除パターンを分析"""
+        self.logger.info("グループ削除パターン分析中...")
+
+        # 各メソッドに削除フラグを追加
+        enhanced_df["is_deleted"] = enhanced_df["token_hash"].isin(deleted_methods)
+
+        # グループごとの削除状況を分析
+        group_stats = []
+
+        for group_id in enhanced_df["group_id"].unique():
+            if group_id == -1:  # 単独メソッドはスキップ
+                continue
+
+            group_data = enhanced_df[enhanced_df["group_id"] == group_id]
+
+            total_methods = len(group_data)
+            deleted_count = group_data["is_deleted"].sum()
+            deleted_ratio = deleted_count / total_methods if total_methods > 0 else 0
+
+            group_stats.append(
+                {
+                    "group_id": group_id,
+                    "group_size": group_data["group_size"].iloc[0],
+                    "avg_similarity": group_data["avg_similarity"].iloc[0],
+                    "total_methods": total_methods,
+                    "deleted_count": deleted_count,
+                    "deleted_ratio": deleted_ratio,
+                    "is_fully_deleted": deleted_ratio == 1.0,
+                    "is_partially_deleted": 0 < deleted_ratio < 1.0,
+                    "is_surviving": deleted_ratio == 0.0,
+                }
+            )
+
+        group_stats_df = pd.DataFrame(group_stats)
+
+        # カテゴリ別統計
+        fully_deleted = group_stats_df[group_stats_df["is_fully_deleted"]]
+        partially_deleted = group_stats_df[group_stats_df["is_partially_deleted"]]
+        surviving = group_stats_df[group_stats_df["is_surviving"]]
+
+        analysis_result = {
+            "group_stats": group_stats_df,
+            "fully_deleted_groups": fully_deleted,
+            "partially_deleted_groups": partially_deleted,
+            "surviving_groups": surviving,
+            "summary": {
+                "total_groups": len(group_stats_df),
+                "fully_deleted_count": len(fully_deleted),
+                "partially_deleted_count": len(partially_deleted),
+                "surviving_count": len(surviving),
+                "fully_deleted_ratio": len(fully_deleted) / len(group_stats_df),
+                "partially_deleted_ratio": len(partially_deleted) / len(group_stats_df),
+                "surviving_ratio": len(surviving) / len(group_stats_df),
+            },
+        }
+
+        self.logger.info("グループ分析完了:")
+        self.logger.info(
+            f"  全削除グループ: {len(fully_deleted)} ({len(fully_deleted) / len(group_stats_df) * 100:.1f}%)"
+        )
+        self.logger.info(
+            f"  部分削除グループ: {len(partially_deleted)} ({len(partially_deleted) / len(group_stats_df) * 100:.1f}%)"
+        )
+        self.logger.info(
+            f"  生存グループ: {len(surviving)} ({len(surviving) / len(group_stats_df) * 100:.1f}%)"
+        )
+
+        return analysis_result
+
+    def perform_statistical_tests(
+        self, enhanced_df: pd.DataFrame, deleted_methods: set, group_analysis: Dict
+    ) -> Dict:
+        """統計検定を実行"""
+        self.logger.info("統計検定実行中...")
+
+        fully_deleted = group_analysis["fully_deleted_groups"]
+        partially_deleted = group_analysis["partially_deleted_groups"]
+        surviving = group_analysis["surviving_groups"]
+
+        tests = {}
+
+        # 1. グループサイズの比較
+        if len(fully_deleted) > 0 and len(surviving) > 0:
+            try:
+                size_test = mannwhitneyu(
+                    fully_deleted["group_size"],
+                    surviving["group_size"],
+                    alternative="two-sided",
+                )
+                tests["group_size_comparison"] = {
+                    "test": "Mann-Whitney U",
+                    "statistic": size_test.statistic,
+                    "p_value": size_test.pvalue,
+                    "interpretation": "グループサイズの違い",
+                }
+            except Exception as e:
+                self.logger.warning(f"グループサイズ検定エラー: {e}")
+
+        # 2. 平均類似度の比較
+        if len(fully_deleted) > 0 and len(surviving) > 0:
+            try:
+                similarity_test = mannwhitneyu(
+                    fully_deleted["avg_similarity"],
+                    surviving["avg_similarity"],
+                    alternative="two-sided",
+                )
+                tests["similarity_comparison"] = {
+                    "test": "Mann-Whitney U",
+                    "statistic": similarity_test.statistic,
+                    "p_value": similarity_test.pvalue,
+                    "interpretation": "平均類似度の違い",
+                }
+            except Exception as e:
+                self.logger.warning(f"類似度検定エラー: {e}")
+
+        # 3. グループサイズと削除率の相関
+        try:
+            correlation = stats.spearmanr(
+                group_analysis["group_stats"]["group_size"],
+                group_analysis["group_stats"]["deleted_ratio"],
+            )
+            tests["size_deletion_correlation"] = {
+                "test": "Spearman correlation",
+                "correlation": correlation.correlation,
+                "p_value": correlation.pvalue,
+                "interpretation": "グループサイズと削除率の相関",
+            }
+        except Exception as e:
+            self.logger.warning(f"相関分析エラー: {e}")
+
+        # 4. 類似度と削除率の相関
+        try:
+            similarity_correlation = stats.spearmanr(
+                group_analysis["group_stats"]["avg_similarity"],
+                group_analysis["group_stats"]["deleted_ratio"],
+            )
+            tests["similarity_deletion_correlation"] = {
+                "test": "Spearman correlation",
+                "correlation": similarity_correlation.correlation,
+                "p_value": similarity_correlation.pvalue,
+                "interpretation": "平均類似度と削除率の相関",
+            }
+        except Exception as e:
+            self.logger.warning(f"類似度相関分析エラー: {e}")
+
+        self.logger.info(f"統計検定完了: {len(tests)}個の検定を実行")
+        return tests
+
+    def save_analysis_results(
+        self, group_analysis: Dict, statistical_tests: Dict, output_dir: Path
+    ) -> None:
+        """分析結果を保存"""
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # グループ統計を保存
+        group_analysis["group_stats"].to_csv(
+            output_dir / "group_deletion_analysis.csv", index=False
+        )
+
+        # サマリーを保存
+        summary_df = pd.DataFrame([group_analysis["summary"]])
+        summary_df.to_csv(output_dir / "deletion_summary.csv", index=False)
+
+        # 統計検定結果を保存
+        test_results = []
+        for test_name, result in statistical_tests.items():
+            test_results.append(
+                {
+                    "test_name": test_name,
+                    "test_type": result["test"],
+                    "statistic": result.get("statistic", result.get("correlation")),
+                    "p_value": result["p_value"],
+                    "interpretation": result["interpretation"],
+                }
+            )
+
+        pd.DataFrame(test_results).to_csv(
+            output_dir / "statistical_tests.csv", index=False
+        )
+
+        self.logger.info(f"分析結果保存完了: {output_dir}")
+
+    def create_visualizations(
+        self,
+        enhanced_df: pd.DataFrame,
+        deleted_methods: set,
+        group_analysis: Dict,
+        output_dir: Path,
+    ) -> None:
+        """可視化を作成"""
+        self.logger.info("可視化作成中...")
+
+        # 1. グループサイズ分布の比較
+        plt.figure(figsize=(12, 8))
+
+        plt.subplot(2, 2, 1)
+        surviving_sizes = group_analysis["surviving_groups"]["group_size"]
+        deleted_sizes = group_analysis["fully_deleted_groups"]["group_size"]
+
+        plt.hist(
+            [surviving_sizes, deleted_sizes],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Groups", "Fully Deleted Groups"],
+        )
+        plt.xlabel("Group Size")
+        plt.ylabel("Frequency")
+        plt.title("Group Size Distribution Comparison")
+        plt.legend()
+
+        # 2. 平均類似度分布の比較
+        plt.subplot(2, 2, 2)
+        surviving_sim = group_analysis["surviving_groups"]["avg_similarity"]
+        deleted_sim = group_analysis["fully_deleted_groups"]["avg_similarity"]
+
+        plt.hist(
+            [surviving_sim, deleted_sim],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Groups", "Fully Deleted Groups"],
+        )
+        plt.xlabel("Average Similarity")
+        plt.ylabel("Frequency")
+        plt.title("Average Similarity Distribution Comparison")
+        plt.legend()
+
+        # 3. グループサイズと削除率の散布図
+        plt.subplot(2, 2, 3)
+        plt.scatter(
+            group_analysis["group_stats"]["group_size"],
+            group_analysis["group_stats"]["deleted_ratio"],
+            alpha=0.6,
+        )
+        plt.xlabel("Group Size")
+        plt.ylabel("Deletion Rate")
+        plt.title("Group Size vs Deletion Rate")
+
+        # 4. 平均類似度と削除率の散布図
+        plt.subplot(2, 2, 4)
+        plt.scatter(
+            group_analysis["group_stats"]["avg_similarity"],
+            group_analysis["group_stats"]["deleted_ratio"],
+            alpha=0.6,
+        )
+        plt.xlabel("Average Similarity")
+        plt.ylabel("Deletion Rate")
+        plt.title("Average Similarity vs Deletion Rate")
+
+        plt.tight_layout()
+        plt.savefig(
+            output_dir / "deletion_analysis_visualization.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        plt.close()
+
+        self.logger.info(
+            f"可視化保存完了: {output_dir / 'deletion_analysis_visualization.png'}"
+        )
+
+
+def main():
+    """メイン関数"""
+    parser = argparse.ArgumentParser(description="クローングループ統計分析器")
+    parser.add_argument(
+        "--enhanced-csv", type=str, required=True, help="code_blocks_enhanced.csvのパス"
+    )
+    parser.add_argument(
+        "--method-tracing-csv", type=str, required=True, help="method_tracing.csvのパス"
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="./output/deletion_analysis",
+        help="出力ディレクトリ",
+    )
+
+    args = parser.parse_args()
+
+    # 分析器の初期化
+    analyzer = CloneGroupStatisticalAnalyzer()
+
+    # 分析実行
+    analyzer.analyze_deleted_vs_surviving_groups(
+        Path(args.enhanced_csv), Path(args.method_tracing_csv), Path(args.output_dir)
+    )
+
+
+if __name__ == "__main__":
+    main()

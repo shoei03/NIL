@@ -1,0 +1,498 @@
+#!/usr/bin/env python3
+"""
+メソッドレベルの特徴量分析器
+
+各メソッドに対して、高類似度メソッド数、中類似度メソッド数などの詳細な特徴量を計算する。
+"""
+
+import argparse
+import logging
+from pathlib import Path
+from typing import Dict, Optional
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy.stats import mannwhitneyu
+from utils.logging_utils import setup_logging
+
+
+class MethodLevelFeatureAnalyzer:
+    """メソッドレベルの特徴量分析器"""
+
+    def __init__(self, log_file: Optional[Path] = None):
+        """
+        初期化
+
+        Args:
+            log_file: ログファイルのパス
+        """
+        if log_file is None:
+            log_file = (
+                Path(__file__).parent / "output" / "method_level_feature_analysis.log"
+            )
+
+        setup_logging(log_file)
+        self.logger = logging.getLogger(__name__)
+
+        self.logger.info("MethodLevelFeatureAnalyzer初期化完了")
+
+    def analyze_method_features(
+        self,
+        enhanced_csv_path: Path,
+        method_tracing_csv_path: Path,
+        clone_pairs_csv_path: Path,
+        output_dir: Path,
+    ) -> None:
+        """
+        メソッドレベルの特徴量分析
+
+        Args:
+            enhanced_csv_path: code_blocks_enhanced.csvのパス
+            method_tracing_csv_path: method_tracing.csvのパス
+            clone_pairs_csv_path: clone_pairs.csvのパス
+            output_dir: 結果出力ディレクトリ
+        """
+        self.logger.info("メソッドレベル特徴量分析開始")
+
+        # データ読み込み
+        enhanced_df = self.load_enhanced_code_blocks(enhanced_csv_path)
+        tracing_df = self.load_method_tracing(method_tracing_csv_path)
+        pairs_df = self.load_clone_pairs(clone_pairs_csv_path)
+
+        # 削除されたメソッドを特定
+        deleted_methods = self.identify_deleted_methods(tracing_df)
+
+        # メソッドレベルの特徴量を計算
+        method_features = self.calculate_method_features(
+            enhanced_df, pairs_df, deleted_methods
+        )
+
+        # 統計検定実行
+        statistical_tests = self.perform_method_level_tests(
+            method_features, deleted_methods
+        )
+
+        # 結果保存
+        self.save_method_features(method_features, statistical_tests, output_dir)
+
+        # 可視化
+        self.create_method_feature_visualizations(
+            method_features, deleted_methods, output_dir
+        )
+
+        self.logger.info("メソッドレベル特徴量分析完了")
+
+    def load_enhanced_code_blocks(self, csv_path: Path) -> pd.DataFrame:
+        """拡張されたcode_blocks.csvを読み込む"""
+        self.logger.info(f"code_blocks_enhanced.csv読み込み: {csv_path}")
+
+        df = pd.read_csv(
+            csv_path,
+            header=None,
+            names=[
+                "token_hash",
+                "file_path",
+                "start_line",
+                "end_line",
+                "method_name",
+                "return_type",
+                "parameters",
+                "commit_hash",
+                "token_sequence",
+                "group_id",
+                "group_size",
+                "avg_similarity",
+            ],
+        )
+
+        self.logger.info(f"読み込み完了: {len(df)}個のコードブロック")
+        return df
+
+    def load_method_tracing(self, csv_path: Path) -> pd.DataFrame:
+        """method_tracing.csvを読み込む"""
+        self.logger.info(f"method_tracing.csv読み込み: {csv_path}")
+
+        df = pd.read_csv(csv_path)
+
+        self.logger.info(f"読み込み完了: {len(df)}個の追跡レコード")
+        return df
+
+    def load_clone_pairs(self, csv_path: Path) -> pd.DataFrame:
+        """clone_pairs.csvを読み込む"""
+        self.logger.info(f"clone_pairs.csv読み込み: {csv_path}")
+
+        df = pd.read_csv(
+            csv_path,
+            header=None,
+            names=["block_id1", "block_id2", "ngram_similarity", "lcs_similarity"],
+        )
+
+        # データ型の変換
+        df["ngram_similarity"] = pd.to_numeric(df["ngram_similarity"], errors="coerce")
+        df["lcs_similarity"] = pd.to_numeric(df["lcs_similarity"], errors="coerce")
+
+        # 欠損値の処理
+        df = df.dropna(subset=["block_id1", "block_id2", "ngram_similarity"])
+
+        self.logger.info(f"読み込み完了: {len(df)}個のペア")
+        return df
+
+    def identify_deleted_methods(self, tracing_df: pd.DataFrame) -> set:
+        """削除されたメソッドのtoken_hashを特定"""
+        deleted_methods = set()
+
+        for _, row in tracing_df.iterrows():
+            if row["change_type"] == "deleted" and pd.notna(row["method_t_token_hash"]):
+                deleted_methods.add(str(row["method_t_token_hash"]))
+
+        self.logger.info(f"削除されたメソッド数: {len(deleted_methods)}")
+        return deleted_methods
+
+    def calculate_method_features(
+        self, enhanced_df: pd.DataFrame, pairs_df: pd.DataFrame, deleted_methods: set
+    ) -> pd.DataFrame:
+        """各メソッドの詳細な特徴量を計算"""
+        self.logger.info("メソッドレベル特徴量計算中...")
+
+        # 削除フラグを追加
+        enhanced_df = enhanced_df.copy()
+        enhanced_df["is_deleted"] = enhanced_df["token_hash"].isin(deleted_methods)
+
+        method_features = []
+
+        for _, method in enhanced_df.iterrows():
+            token_hash = method["token_hash"]
+
+            # このメソッドに関連するペアを取得
+            related_pairs = pairs_df[
+                (pairs_df["block_id1"] == token_hash)
+                | (pairs_df["block_id2"] == token_hash)
+            ]
+
+            # 類似度の閾値定義
+            high_similarity_threshold = 80
+            medium_similarity_threshold = 60
+            low_similarity_threshold = 40
+
+            # 各類似度レベルのメソッド数を計算
+            high_similarity_count = 0
+            medium_similarity_count = 0
+            low_similarity_count = 0
+            very_low_similarity_count = 0
+
+            max_similarity = 0
+            min_similarity = 100
+            similarities = []
+
+            for _, pair in related_pairs.iterrows():
+                # 有効な類似度を決定
+                effective_similarity = self._get_effective_similarity(
+                    pair["ngram_similarity"], pair["lcs_similarity"]
+                )
+
+                similarities.append(effective_similarity)
+                max_similarity = max(max_similarity, effective_similarity)
+                min_similarity = min(min_similarity, effective_similarity)
+
+                # 類似度レベル別カウント
+                if effective_similarity >= high_similarity_threshold:
+                    high_similarity_count += 1
+                elif effective_similarity >= medium_similarity_threshold:
+                    medium_similarity_count += 1
+                elif effective_similarity >= low_similarity_threshold:
+                    low_similarity_count += 1
+                else:
+                    very_low_similarity_count += 1
+
+            # 統計量計算
+            avg_similarity = np.mean(similarities) if similarities else 0
+            std_similarity = np.std(similarities) if len(similarities) > 1 else 0
+            median_similarity = np.median(similarities) if similarities else 0
+
+            # 特徴量を追加
+            method_features.append(
+                {
+                    "token_hash": token_hash,
+                    "file_path": method["file_path"],
+                    "method_name": method["method_name"],
+                    "group_id": method["group_id"],
+                    "group_size": method["group_size"],
+                    "group_avg_similarity": method["avg_similarity"],
+                    "is_deleted": method["is_deleted"],
+                    # 類似度レベル別カウント
+                    "high_similarity_count": high_similarity_count,
+                    "medium_similarity_count": medium_similarity_count,
+                    "low_similarity_count": low_similarity_count,
+                    "very_low_similarity_count": very_low_similarity_count,
+                    "total_similar_methods": len(similarities),
+                    # 類似度統計
+                    "max_similarity": max_similarity,
+                    "min_similarity": min_similarity,
+                    "avg_similarity": avg_similarity,
+                    "std_similarity": std_similarity,
+                    "median_similarity": median_similarity,
+                    # 派生特徴量
+                    "similarity_range": max_similarity - min_similarity,
+                    "high_similarity_ratio": high_similarity_count / len(similarities)
+                    if similarities
+                    else 0,
+                    "connectivity_score": len(similarities)
+                    / enhanced_df["group_size"].max()
+                    if enhanced_df["group_size"].max() > 0
+                    else 0,
+                }
+            )
+
+        method_features_df = pd.DataFrame(method_features)
+
+        self.logger.info(
+            f"メソッド特徴量計算完了: {len(method_features_df)}個のメソッド"
+        )
+        return method_features_df
+
+    def _get_effective_similarity(
+        self, ngram_sim: float, lcs_sim: Optional[float]
+    ) -> float:
+        """有効な類似度を決定する"""
+        if lcs_sim is not None and not pd.isna(lcs_sim) and lcs_sim != "":
+            return float(lcs_sim)
+        else:
+            return float(ngram_sim)
+
+    def perform_method_level_tests(
+        self, method_features_df: pd.DataFrame, deleted_methods: set
+    ) -> Dict:
+        """メソッドレベルの統計検定を実行"""
+        self.logger.info("メソッドレベル統計検定実行中...")
+
+        # 削除されたメソッドと生存メソッドを分離
+        deleted_methods_df = method_features_df[method_features_df["is_deleted"]]
+        surviving_methods_df = method_features_df[~method_features_df["is_deleted"]]
+
+        tests = {}
+
+        # 各特徴量についてMann-Whitney U検定を実行
+        feature_columns = [
+            "high_similarity_count",
+            "medium_similarity_count",
+            "low_similarity_count",
+            "very_low_similarity_count",
+            "total_similar_methods",
+            "max_similarity",
+            "min_similarity",
+            "avg_similarity",
+            "std_similarity",
+            "median_similarity",
+            "similarity_range",
+            "high_similarity_ratio",
+            "connectivity_score",
+        ]
+
+        for feature in feature_columns:
+            if len(deleted_methods_df) > 0 and len(surviving_methods_df) > 0:
+                try:
+                    test_result = mannwhitneyu(
+                        deleted_methods_df[feature],
+                        surviving_methods_df[feature],
+                        alternative="two-sided",
+                    )
+
+                    tests[f"{feature}_comparison"] = {
+                        "test": "Mann-Whitney U",
+                        "statistic": test_result.statistic,
+                        "p_value": test_result.pvalue,
+                        "interpretation": f"{feature}の違い",
+                        "deleted_mean": deleted_methods_df[feature].mean(),
+                        "surviving_mean": surviving_methods_df[feature].mean(),
+                    }
+                except Exception as e:
+                    self.logger.warning(f"{feature}検定エラー: {e}")
+
+        self.logger.info(f"メソッドレベル統計検定完了: {len(tests)}個の検定を実行")
+        return tests
+
+    def save_method_features(
+        self,
+        method_features_df: pd.DataFrame,
+        statistical_tests: Dict,
+        output_dir: Path,
+    ) -> None:
+        """メソッド特徴量と統計検定結果を保存"""
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # メソッド特徴量を保存
+        method_features_df.to_csv(output_dir / "method_level_features.csv", index=False)
+
+        # 統計検定結果を保存
+        test_results = []
+        for test_name, result in statistical_tests.items():
+            test_results.append(
+                {
+                    "test_name": test_name,
+                    "test_type": result["test"],
+                    "statistic": result["statistic"],
+                    "p_value": result["p_value"],
+                    "interpretation": result["interpretation"],
+                    "deleted_mean": result["deleted_mean"],
+                    "surviving_mean": result["surviving_mean"],
+                }
+            )
+
+        pd.DataFrame(test_results).to_csv(
+            output_dir / "method_level_statistical_tests.csv", index=False
+        )
+
+        self.logger.info(f"メソッド特徴量保存完了: {output_dir}")
+
+    def create_method_feature_visualizations(
+        self, method_features_df: pd.DataFrame, deleted_methods: set, output_dir: Path
+    ) -> None:
+        """メソッド特徴量の可視化を作成"""
+        self.logger.info("メソッド特徴量可視化作成中...")
+
+        # 削除されたメソッドと生存メソッドを分離
+        deleted_methods_df = method_features_df[method_features_df["is_deleted"]]
+        surviving_methods_df = method_features_df[~method_features_df["is_deleted"]]
+
+        # 主要な特徴量の可視化
+        fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+
+        # 1. 高類似度メソッド数の分布
+        axes[0, 0].hist(
+            [
+                surviving_methods_df["high_similarity_count"],
+                deleted_methods_df["high_similarity_count"],
+            ],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Methods", "Deleted Methods"],
+        )
+        axes[0, 0].set_xlabel("High Similarity Count")
+        axes[0, 0].set_ylabel("Frequency")
+        axes[0, 0].set_title("High Similarity Methods Distribution")
+        axes[0, 0].legend()
+
+        # 2. 総類似メソッド数の分布
+        axes[0, 1].hist(
+            [
+                surviving_methods_df["total_similar_methods"],
+                deleted_methods_df["total_similar_methods"],
+            ],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Methods", "Deleted Methods"],
+        )
+        axes[0, 1].set_xlabel("Total Similar Methods")
+        axes[0, 1].set_ylabel("Frequency")
+        axes[0, 1].set_title("Total Similar Methods Distribution")
+        axes[0, 1].legend()
+
+        # 3. 最大類似度の分布
+        axes[0, 2].hist(
+            [
+                surviving_methods_df["max_similarity"],
+                deleted_methods_df["max_similarity"],
+            ],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Methods", "Deleted Methods"],
+        )
+        axes[0, 2].set_xlabel("Max Similarity")
+        axes[0, 2].set_ylabel("Frequency")
+        axes[0, 2].set_title("Max Similarity Distribution")
+        axes[0, 2].legend()
+
+        # 4. 類似度範囲の分布
+        axes[1, 0].hist(
+            [
+                surviving_methods_df["similarity_range"],
+                deleted_methods_df["similarity_range"],
+            ],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Methods", "Deleted Methods"],
+        )
+        axes[1, 0].set_xlabel("Similarity Range")
+        axes[1, 0].set_ylabel("Frequency")
+        axes[1, 0].set_title("Similarity Range Distribution")
+        axes[1, 0].legend()
+
+        # 5. 高類似度比率の分布
+        axes[1, 1].hist(
+            [
+                surviving_methods_df["high_similarity_ratio"],
+                deleted_methods_df["high_similarity_ratio"],
+            ],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Methods", "Deleted Methods"],
+        )
+        axes[1, 1].set_xlabel("High Similarity Ratio")
+        axes[1, 1].set_ylabel("Frequency")
+        axes[1, 1].set_title("High Similarity Ratio Distribution")
+        axes[1, 1].legend()
+
+        # 6. 接続性スコアの分布
+        axes[1, 2].hist(
+            [
+                surviving_methods_df["connectivity_score"],
+                deleted_methods_df["connectivity_score"],
+            ],
+            bins=20,
+            alpha=0.7,
+            label=["Surviving Methods", "Deleted Methods"],
+        )
+        axes[1, 2].set_xlabel("Connectivity Score")
+        axes[1, 2].set_ylabel("Frequency")
+        axes[1, 2].set_title("Connectivity Score Distribution")
+        axes[1, 2].legend()
+
+        plt.tight_layout()
+        plt.savefig(
+            output_dir / "method_level_features_visualization.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        plt.close()
+
+        self.logger.info(
+            f"メソッド特徴量可視化保存完了: {output_dir / 'method_level_features_visualization.png'}"
+        )
+
+
+def main():
+    """メイン関数"""
+    parser = argparse.ArgumentParser(description="メソッドレベル特徴量分析器")
+    parser.add_argument(
+        "--enhanced-csv", type=str, required=True, help="code_blocks_enhanced.csvのパス"
+    )
+    parser.add_argument(
+        "--method-tracing-csv", type=str, required=True, help="method_tracing.csvのパス"
+    )
+    parser.add_argument(
+        "--clone-pairs-csv", type=str, required=True, help="clone_pairs.csvのパス"
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="./output/method_level_analysis",
+        help="出力ディレクトリ",
+    )
+
+    args = parser.parse_args()
+
+    # 分析器の初期化
+    analyzer = MethodLevelFeatureAnalyzer()
+
+    # 分析実行
+    analyzer.analyze_method_features(
+        Path(args.enhanced_csv),
+        Path(args.method_tracing_csv),
+        Path(args.clone_pairs_csv),
+        Path(args.output_dir),
+    )
+
+
+if __name__ == "__main__":
+    main()

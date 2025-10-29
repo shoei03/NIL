@@ -1,0 +1,5 @@
+test_name,test_type,statistic,p_value,interpretation
+group_size_comparison,Mann-Whitney U,43235.5,0.48685178206222923,グループサイズの違い
+similarity_comparison,Mann-Whitney U,40339.5,0.14336792252592195,平均類似度の違い
+size_deletion_correlation,Spearman correlation,0.07633229747197796,0.0022986242744239905,グループサイズと削除率の相関
+similarity_deletion_correlation,Spearman correlation,-0.05199780113135326,0.03797430116736873,平均類似度と削除率の相関
