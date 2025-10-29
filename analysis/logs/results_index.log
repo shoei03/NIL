@@ -1,0 +1,26 @@
+2025-10-29 22:54:20,760 INFO - ============================================================
+2025-10-29 22:54:20,760 INFO - results インデックス生成開始
+2025-10-29 22:54:20,760 INFO - results ディレクトリを検出: /Users/shoei-y/research/NIL/results
+2025-10-29 22:54:20,760 INFO - results ディレクトリ: /Users/shoei-y/research/NIL/results
+2025-10-29 22:54:20,760 INFO - run ディレクトリ数: 37
+2025-10-29 22:54:20,783 INFO - インデックス検証: OK
+2025-10-29 22:54:20,784 INFO - ============================================================
+2025-10-29 22:54:20,784 INFO - インデックス生成完了
+2025-10-29 22:54:20,784 INFO -   出力先: /Users/shoei-y/research/NIL/analysis/output/results_index.json
+2025-10-29 22:54:20,784 INFO -   runs: 37
+2025-10-29 22:54:20,784 INFO -   files: 112
+2025-10-29 22:54:20,784 INFO -   total size: 345.19 MB
+2025-10-29 22:54:20,784 INFO - ============================================================
+2025-10-29 23:00:30,006 INFO - ============================================================
+2025-10-29 23:00:30,006 INFO - Starting results index generation
+2025-10-29 23:00:30,006 INFO - Detected results directory: /Users/shoei-y/research/NIL/results
+2025-10-29 23:00:30,006 INFO - Results directory: /Users/shoei-y/research/NIL/results
+2025-10-29 23:00:30,007 INFO - Found 37 run directories
+2025-10-29 23:00:30,036 INFO - Index validation: OK
+2025-10-29 23:00:30,037 INFO - ============================================================
+2025-10-29 23:00:30,037 INFO - Index generation completed
+2025-10-29 23:00:30,037 INFO -   Output: /Users/shoei-y/research/NIL/analysis/output/results_index.json
+2025-10-29 23:00:30,037 INFO -   Runs: 37
+2025-10-29 23:00:30,037 INFO -   Files: 112
+2025-10-29 23:00:30,037 INFO -   Total size: 345.19 MB
+2025-10-29 23:00:30,037 INFO - ============================================================
